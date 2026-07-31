@@ -1,0 +1,146 @@
+---
+title: "Runs"
+description: "List your runs, poll one to completion, or stop one that is still going."
+---
+
+Three endpoints over the run record: list, fetch, stop. A run is yours or it
+does not exist, so a run id from another workspace answers `404`, never `403`.
+
+## List runs
+
+```
+GET https://api.usegoro.ai/v1/runs
+```
+
+Newest first, cursor-paginated.
+
+| Parameter | Type | Notes |
+| --- | --- | --- |
+| `limit` | integer | Default 20, maximum 100 |
+| `cursor` | string | `next_cursor` from the previous page |
+
+```bash
+curl "https://api.usegoro.ai/v1/runs?limit=2" \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+```json
+{
+  "items": [
+    {
+      "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+      "endpoint": "web.search",
+      "status": "COMPLETED",
+      "output": null,
+      "output_count": 10,
+      "quoted_cost_micro": 45000,
+      "quoted_cost_usd": "$0.0450",
+      "cost_micro": 10500,
+      "cost_usd": "$0.0105",
+      "error": null,
+      "created_at": "2026-07-30T11:04:21.552Z",
+      "started_at": "2026-07-30T11:04:21.998Z",
+      "finished_at": "2026-07-30T11:04:29.140Z"
+    }
+  ],
+  "next_cursor": "eyJjcmVhdGVkX2F0IjoiMjAyNi0wNy0zMFQxMTowNDoyMS41NTJaIiwiaWQiOiI4YzNhMWY0MiJ9"
+}
+```
+
+Items carry every field of the run record described under
+[`run`](/api/run#200-finished), except `price`.
+
+<Warning>
+  `output` is always `null` in this list. Goro does not store run results, and
+  the list endpoint reads only what is stored. Use `GET /v1/runs/{id}` while a
+  run is still in flight to receive its rows.
+</Warning>
+
+The list is a spend and status record: what ran, when, how many rows it made
+and what it cost.
+
+## Get a run
+
+```
+GET https://api.usegoro.ai/v1/runs/{run_id}
+```
+
+Fetches a run, and advances it if it is still going. This is the polling
+endpoint behind a `202` from [`run`](/api/run).
+
+```bash
+curl https://api.usegoro.ai/v1/runs/8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91 \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+The response is the run record, same shape as the list items above.
+
+Polling is safe to repeat as often as you like. Each call on a non-terminal
+run checks the provider once and settles the run if the provider is done:
+capturing the charge, releasing the rest of the hold, and recording the row
+count. Settlement is idempotent, so concurrent polls cannot double-charge.
+
+Stop polling once `status` is `COMPLETED`, `FAILED`, `STOPPED` or `TIMED_OUT`.
+
+### Where the rows are
+
+The poll that finds the provider finished returns the rows in `output`. That
+is the response to keep.
+
+Goro never stores results, so a poll of a run that was already terminal before
+you asked returns its status, counts and cost with `output: null`. A re-read of
+the provider's own copy is best effort and providers age their datasets out, so
+`output: null` on an older run is a normal outcome rather than an error.
+
+If you need results you can come back to, write them somewhere yourself when
+you first receive them.
+
+## Stop a run
+
+```
+POST https://api.usegoro.ai/v1/runs/{run_id}/stop
+```
+
+Aborts a run that is still going, releases the whole hold, and settles it as
+`STOPPED`. You are not charged.
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/runs/8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91/stop \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+```json
+{
+  "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+  "status": "STOPPED"
+}
+```
+
+The response is `202`. Stopping upstream is best effort; releasing your hold is
+not, and happens either way.
+
+## Run statuses
+
+| Status | Terminal | Meaning |
+| --- | --- | --- |
+| `QUEUED` | no | Accepted, not yet handed to the provider |
+| `RUNNING` | no | In flight |
+| `COMPLETED` | yes | Finished. `cost_micro` is what you were charged |
+| `FAILED` | yes | The provider failed, or the run never started. Hold released, charged nothing |
+| `STOPPED` | yes | You stopped it. Hold released, charged nothing |
+| `TIMED_OUT` | yes | Exceeded the 5 minute run limit. Hold released, charged nothing |
+
+Every terminal status other than `COMPLETED` settles at a final cost of zero.
+
+## Errors
+
+| Status | `code` | When |
+| --- | --- | --- |
+| 400 | `validation_error` | `limit` is not a positive integer, or the cursor is not one Goro issued |
+| 401 | `unauthorized` | Missing or invalid API key |
+| 404 | `not_found` | The run does not exist, or belongs to another workspace |
+| 409 | `conflict` | You tried to stop a run that has already finished |
+
+<Card title="Check the balance" icon="wallet" href="/api/wallet">
+  What is available, and where it went.
+</Card>

@@ -1,0 +1,177 @@
+---
+title: "Run"
+description: "POST /v1/run. Execute a tool, get the rows inline when it is fast, or a run id to poll when it is not."
+---
+
+```
+POST https://api.usegoro.ai/v1/run
+```
+
+The only endpoint that spends money. Goro validates your input, holds an
+amount sized from your request, runs the tool, then charges what it actually
+cost and releases the rest.
+
+## Request
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `slug` | string | yes | The tool identifier |
+| `input` | object | | The tool's input, matching its `input_schema`. Defaults to `{}` |
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "web.search",
+    "input": { "queries": "best espresso machines", "maxPagesPerQuery": 1 }
+  }'
+```
+
+`input` must be a JSON object. An array, a string or a number answers `400`
+with the path `/input`. Your input is validated against the tool's schema
+before anything is held or started, and schema defaults are filled in for you.
+
+## Responses
+
+There are three of them, and which one you get depends on how fast the tool
+finished.
+
+### 200: finished
+
+The tool completed inside the synchronous window, which is 25 seconds by
+default. The rows are in `output`, abridged to one row here.
+
+```json
+{
+  "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+  "endpoint": "web.search",
+  "status": "COMPLETED",
+  "output": [
+    {
+      "url": "https://example.com/espresso",
+      "title": "The best espresso machines of 2026",
+      "snippet": "We tested eleven machines over six weeks...",
+      "position": 1
+    }
+  ],
+  "output_count": 10,
+  "quoted_cost_micro": 45000,
+  "quoted_cost_usd": "$0.0450",
+  "cost_micro": 10500,
+  "cost_usd": "$0.0105",
+  "error": null,
+  "created_at": "2026-07-30T11:04:21.552Z",
+  "started_at": "2026-07-30T11:04:21.998Z",
+  "finished_at": "2026-07-30T11:04:29.140Z",
+  "price": {
+    "type": "cost_plus",
+    "markup": 3,
+    "min_micro": 2000,
+    "min_usd": "$0.0020",
+    "max_micro": 200000,
+    "max_usd": "$0.20",
+    "billed_on_actual_usage": true,
+    "summary": "up to $0.20 per call (the actual hold scales with what you request), billed on actual usage (3x provider cost, minimum $0.0020)"
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `run_id` | string | UUID for this run |
+| `endpoint` | string | The slug that ran |
+| `status` | string | One of `QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`, `STOPPED`, `TIMED_OUT` |
+| `output` | array or null | The tool's rows, untouched |
+| `output_count` | integer or null | How many rows the run produced |
+| `quoted_cost_micro`, `quoted_cost_usd` | integer, string | What was held before the run |
+| `cost_micro`, `cost_usd` | integer or null, string or null | What was actually charged. Null until the run settles |
+| `error` | object or null | `{code, message}` when something went wrong |
+| `created_at`, `started_at`, `finished_at` | string or null | ISO 8601 timestamps |
+| `price` | object | The tool's price, same shape as in [`discover`](/api/discover#price) |
+
+`cost_micro` is what left your balance. `quoted_cost_micro` is what was
+reserved while the run was in flight, and the difference between them was
+released back to you.
+
+### 202: still running
+
+Past the synchronous window. You get a run id and poll it.
+
+```json
+{
+  "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+  "status": "RUNNING",
+  "status_url": "https://api.usegoro.ai/v1/runs/8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+  "quoted_cost_micro": 450000,
+  "quoted_cost_usd": "$0.45",
+  "price": { "type": "cost_plus", "markup": 3, "billed_on_actual_usage": true, "summary": "..." }
+}
+```
+
+Poll `status_url` until `status` is terminal. See
+[Runs](/api/runs#get-a-run) for what polling does and where the rows arrive.
+
+### 502: the provider failed
+
+The tool failed or timed out inside the synchronous window. The hold has
+already been released in full and you are not charged.
+
+```json
+{
+  "code": "provider_error",
+  "message": "run failed: the provider did not complete this run",
+  "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+  "status": "FAILED",
+  "error": { "code": "provider_failure", "message": "The provider reported a failure." }
+}
+```
+
+`status` here is `FAILED` or `TIMED_OUT`. Retrying is safe and costs nothing
+for the attempt that failed.
+
+## What a run costs
+
+Two numbers, doing two different jobs.
+
+The **hold** is taken before the tool starts and is sized from what you asked
+for. Request three rows and a small amount is held; request three hundred and
+more is held. The hold is not a charge, and it never exceeds the tool's
+ceiling.
+
+The **charge** is taken when the run settles: the markup applied to what the
+provider actually charged, floored at `min_micro` and capped at both
+`max_micro` and the hold. Whatever is left of the hold is released.
+
+A run that returns zero rows and cost the provider nothing is billed nothing.
+
+<Note>
+  Goro waits for the provider's own billing to settle before charging, which is
+  why `cost_micro` is authoritative and `quoted_cost_micro` is not. Do not
+  report the quote to a user as the price of the call.
+</Note>
+
+## Timing
+
+| Behaviour | Value |
+| --- | --- |
+| Synchronous wait before `202` | 25 seconds by default |
+| Run timeout | 5 minutes. Past it the run is stopped upstream, the hold is released, and the status is `TIMED_OUT` |
+
+## Errors
+
+| Status | `code` | When |
+| --- | --- | --- |
+| 400 | `validation_error` | `slug` missing, `input` not an object, or the input failed the tool's schema. Carries `errors` |
+| 401 | `unauthorized` | Missing or invalid API key |
+| 402 | `insufficient_funds` | The wallet cannot cover the hold. Carries `top_up_url` and `required_micro` |
+| 402 | `budget_exceeded` | A workspace budget cap would be breached. Carries `period`, `cap_micro`, `spent_micro` |
+| 404 | `not_found` | Unknown or inactive slug |
+| 502 | `provider_error` | The tool failed or timed out. Body as shown above |
+
+None of these charge you. A validation failure never reaches the provider and
+never places a hold; a failure after the hold releases it in full.
+
+<Card title="Poll and manage runs" icon="list-checks" href="/api/runs">
+  Fetch, list and stop runs.
+</Card>

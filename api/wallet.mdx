@@ -1,0 +1,140 @@
+---
+title: "Wallet"
+description: "GET /v1/wallet/balance and GET /v1/wallet/activities. What is available to spend, and the ledger that explains it."
+---
+
+## Balance
+
+```
+GET https://api.usegoro.ai/v1/wallet/balance
+```
+
+```bash
+curl https://api.usegoro.ai/v1/wallet/balance \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+```json
+{
+  "balance_micro": 4250000,
+  "promo_micro": 1000000,
+  "available_micro": 5250000,
+  "balance_usd": "$4.25",
+  "promo_usd": "$1.00",
+  "available_usd": "$5.25"
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `balance_micro`, `balance_usd` | integer, string | Cash you topped up |
+| `promo_micro`, `promo_usd` | integer, string | Promotional credit. Reads zero once expired |
+| `available_micro`, `available_usd` | integer, string | Cash plus promo. What you can spend right now |
+
+`available_micro` is the number to check before a run. Anything currently held
+by an in-flight run has already left `balance_micro`, so the available figure
+never double-counts a run you have not settled yet.
+
+Promotional credit is spent before cash, and it expires. An expired promo drops
+out of the balance automatically.
+
+This is also the fastest check an agent can make after a `402
+insufficient_funds`: it tells you exactly how much is there so you can tell a
+human what to top up.
+
+## Activities
+
+```
+GET https://api.usegoro.ai/v1/wallet/activities
+```
+
+The append-only ledger, newest first. Every movement of money is a row here,
+and nothing is ever edited or deleted.
+
+| Parameter | Type | Notes |
+| --- | --- | --- |
+| `limit` | integer | Default 20, maximum 100 |
+| `cursor` | string | `next_cursor` from the previous page |
+
+```bash
+curl "https://api.usegoro.ai/v1/wallet/activities?limit=3" \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+```json
+{
+  "items": [
+    {
+      "id": 4417,
+      "kind": "hold_release",
+      "amount_micro": 34500,
+      "amount_usd": "$0.0345",
+      "balance_after_micro": 4250000,
+      "balance_after_usd": "$4.25",
+      "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+      "stripe_ref": null,
+      "note": null,
+      "created_at": "2026-07-30T11:04:29.150Z"
+    },
+    {
+      "id": 4416,
+      "kind": "debit_capture",
+      "amount_micro": 10500,
+      "amount_usd": "$0.0105",
+      "balance_after_micro": 4215500,
+      "balance_after_usd": "$4.2155",
+      "run_id": "8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
+      "stripe_ref": null,
+      "note": null,
+      "created_at": "2026-07-30T11:04:29.148Z"
+    }
+  ],
+  "next_cursor": "eyJpZCI6NDQxNn0"
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | integer | Ledger sequence number. Higher is newer |
+| `kind` | string | See the table below |
+| `amount_micro`, `amount_usd` | integer, string | The size of this entry, unsigned |
+| `balance_after_micro`, `balance_after_usd` | integer, string | Wallet balance after this entry |
+| `run_id` | string or null | The run this entry belongs to, for run entries |
+| `stripe_ref` | string or null | The Stripe reference, for top-ups and refunds |
+| `note` | string or null | Free text, when there is any |
+| `created_at` | string | ISO 8601 |
+
+### Entry kinds
+
+| `kind` | What it means |
+| --- | --- |
+| `credit` | A top-up landed |
+| `promo` | Promotional credit was granted |
+| `debit_hold` | A run reserved funds. The full amount leaves the balance here |
+| `debit_capture` | A run was charged. Records what the run actually cost |
+| `hold_release` | The unused part of a hold came back |
+| `refund` | Money was returned to you |
+
+<Warning>
+  Do not sum these as signed amounts. `debit_hold` is what leaves the balance
+  when a run starts; `debit_capture` records the charge but does not itself move
+  the balance again, and `hold_release` returns the unused remainder. Treating
+  hold and capture as two separate debits double-counts every run. Read
+  `balance_after_micro` on each row instead of deriving a running total.
+</Warning>
+
+A completed run leaves three rows: one `debit_hold`, one `debit_capture` for
+the actual cost, and one `hold_release` for the difference. A run that failed,
+timed out or was stopped leaves a `debit_hold` and a `hold_release` for the
+whole amount, and no capture.
+
+## Errors
+
+| Status | `code` | When |
+| --- | --- | --- |
+| 400 | `validation_error` | `limit` is not a positive integer, or the cursor is not one Goro issued |
+| 401 | `unauthorized` | Missing or invalid API key |
+
+<Card title="How pricing works" icon="receipt" href="/pricing">
+  Rates, totals and ceilings, in plain terms.
+</Card>

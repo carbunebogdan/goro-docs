@@ -1,0 +1,114 @@
+---
+title: "For AI agents: Skill"
+sidebarTitle: "For AI agents (Skill)"
+description: "Teach an agent the whole gateway with one markdown file and an API key. No client library, no MCP client."
+---
+
+If your agent can make HTTP requests and read instructions, it does not need a
+Goro SDK. It needs a key and a page of rules.
+
+This is the right path for a coding agent, a background worker, or anything
+running in a loop you control. If you are wiring up Claude, Cursor or another
+MCP client, use the [MCP quickstart](/guide/quickstart-mcp) instead.
+
+## 1. Get a key
+
+Create a workspace at [app.usegoro.ai](https://app.usegoro.ai) and generate an
+API key. New workspaces start with a small promotional balance, so the agent
+can make real calls before you add a card.
+
+Put it where your agent keeps secrets, conventionally as `GORO_API_KEY`.
+
+## 2. Give the agent the rules
+
+Save the following as a skill file, a system prompt, or whatever your framework
+calls its instruction file. It is the whole contract.
+
+````markdown
+# Goro
+
+Goro is a tool gateway. One key, one prepaid balance, pay per call. You never
+sign up for individual providers or hold their API keys.
+
+Base URL: https://api.usegoro.ai
+Auth: send `Authorization: Bearer $GORO_API_KEY` on every request.
+
+## The loop
+
+1. DISCOVER. You do not need to know the catalog. Describe the job.
+
+   POST /v1/discover
+   {"query": "recent posts from a tiktok creator", "limit": 5}
+
+   Returns {"items": [...]}, best first. Each item has `slug`, `when_to_use`,
+   a `price` object, and a `sample_input` you can fill in. An empty `items`
+   means nothing in the catalog answers that query: say so, do not invent a
+   slug.
+
+2. INSPECT, when you are unsure of the input shape.
+
+   POST /v1/inspect
+   {"slug": "tiktok.profile"}
+
+   Returns `input_schema` (real JSON Schema, validated on every run),
+   `sample_input`, `output_sample` and `price`. Skip this when discover
+   already showed you the shape.
+
+3. RUN. This spends real money. Only call it when you intend to execute.
+
+   POST /v1/run
+   {"slug": "tiktok.profile", "input": {...}}
+
+   200 means finished: the rows are in `output`, and `cost_usd` is what it
+   cost. 202 means still running: poll `status_url` until `status` is
+   COMPLETED, FAILED, STOPPED or TIMED_OUT. 502 means the provider failed and
+   you were not charged.
+
+4. POLL, only after a 202.
+
+   GET /v1/runs/{run_id}
+
+   Safe to repeat. The poll that finds the run finished carries the rows in
+   `output`. Keep them: Goro does not store results, so a later poll of the
+   same run returns status and cost with `output: null`.
+
+## Money rules
+
+- Check the balance with GET /v1/wallet/balance before a large job.
+- Prices are visible before you spend. Every price is a MAXIMUM for that
+  request (`billed_on_actual_usage: true`), never a fixed fee. The real charge
+  is what the provider actually charged plus margin, and it is usually lower.
+- Amounts come as integer micro-USD (1 USD = 1,000,000) plus a human `_usd`
+  string. Do maths on the integers.
+- Failed, stopped and timed-out calls are never charged. Retrying is safe.
+- On 402 `insufficient_funds`, stop and tell your human the amount and the
+  `top_up_url` in the body. Do not keep retrying.
+- On 402 `budget_exceeded`, the wallet is fine and a spend cap is the blocker.
+  Say that instead of asking for a top-up.
+
+## Errors
+
+Every error body is {"code": ..., "message": ...}. Branch on `code`.
+400 validation_error carries an `errors` array with a JSON pointer per bad
+field: correct all of them and retry once. 404 means the slug does not exist.
+429 means slow down. 502 and 503 mean retry later.
+````
+
+## 3. Watch it work
+
+The first call an agent makes should be `discover`. If it goes straight to
+`run` with a slug it guessed, the instructions did not land.
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/discover \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "tweets about ai agents"}'
+```
+
+Every run shows up in the dashboard's usage view with its cost, and in
+`GET /v1/wallet/activities` as ledger entries.
+
+<Card title="Full API reference" icon="code" href="/api/overview">
+  Every endpoint, field and error code.
+</Card>

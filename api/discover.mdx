@@ -1,0 +1,123 @@
+---
+title: "Discover"
+description: "POST /v1/discover. Rank the catalog against a plain-English query and get each match with its price and a fillable sample input."
+---
+
+```
+POST https://api.usegoro.ai/v1/discover
+```
+
+Describe the job in plain language. Goro ranks the catalog against it and
+returns the best matches, each with its price and a sample input you can fill
+in, so you can often go straight to [`run`](/api/run) without inspecting first.
+
+## Request
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `query` | string | yes | What you are trying to accomplish. Must be non-empty |
+| `limit` | integer | | How many matches to return. Default 5, capped at 20. Must be a positive integer |
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/discover \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "tweets about ai agents", "limit": 3}'
+```
+
+## Response
+
+```json
+{
+  "items": [
+    {
+      "slug": "twitter.search",
+      "name": "Twitter search",
+      "category": "social",
+      "when_to_use": "Use when you need tweets about a topic, sentiment or chatter on X, mentions of a brand or person, or what people are saying right now.",
+      "price": {
+        "type": "cost_plus",
+        "markup": 3,
+        "min_micro": 2000,
+        "min_usd": "$0.0020",
+        "max_micro": 3000000,
+        "max_usd": "$3.00",
+        "billed_on_actual_usage": true,
+        "summary": "up to $3.00 per call (the actual hold scales with what you request), billed on actual usage (3x provider cost, minimum $0.0020)"
+      },
+      "sample_input": {
+        "sort": "Latest",
+        "maxItems": 20,
+        "searchTerms": "<searchTerms>"
+      }
+    }
+  ]
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `items` | array | Matches, best first. Can be empty |
+| `items[].slug` | string | The identifier to pass to `inspect` and `run` |
+| `items[].name` | string | Human name |
+| `items[].category` | string | Catalog category, for example `social`, `search`, `maps` |
+| `items[].when_to_use` | string | Guidance on when this tool is the right one |
+| `items[].price` | object | See below |
+| `items[].sample_input` | object | A ready-to-fill input object |
+
+Ranking is lexical and deterministic: the same query returns the same order
+every time. Matches that score zero are dropped, so a query nothing answers
+returns `{"items": []}` rather than a list of bad guesses.
+
+### sample_input
+
+`sample_input` is built from the tool's own input schema. It contains every
+required field, plus every optional field that declares a default. Values come
+from the schema's examples, then its defaults, then its enums. A required field
+with none of those appears as a placeholder like `"<searchTerms>"`, which you
+are expected to replace.
+
+It is a starting point, not a validated input. `run` validates what you
+actually send.
+
+### price
+
+`price` is the same object [`inspect`](/api/inspect) and [`run`](/api/run)
+return. Its fields depend on `type`.
+
+| Field | Type | Present on | Notes |
+| --- | --- | --- | --- |
+| `type` | string | all | `cost_plus`, `per_call` or `per_result` |
+| `summary` | string | all | One-line human description |
+| `markup` | number | `cost_plus` | Multiplier applied to what the provider charged |
+| `min_micro`, `min_usd` | integer, string | `cost_plus` | Floor for a call that delivered rows |
+| `max_micro`, `max_usd` | integer, string | `cost_plus` | Ceiling. You are never charged above it |
+| `billed_on_actual_usage` | boolean | `cost_plus` | Always `true`. Tells an agent this is a maximum, not a fixed price |
+| `base_micro`, `base_usd` | integer, string | `per_call`, `per_result` | Flat component |
+| `per_result_micro`, `per_result_usd` | integer, string | `per_result` | Charged per row |
+| `max_results_cap` | integer | `per_result` | Rows past this are neither delivered nor billed |
+
+Every tool in the catalog today is `cost_plus`: the call is billed at `markup`
+times what the provider actually charged, floored at `min_micro` and capped at
+`max_micro`. The other two shapes are part of the contract and worth handling
+if you parse `price` generically.
+
+<Note>
+  `max_usd` is the ceiling for the tool, and the hold Goro places is sized from
+  what you request, so it is usually well below that number. The rate you pay
+  per result is published on each tool's page in the
+  [catalog](/tools/overview).
+</Note>
+
+## Errors
+
+| Status | `code` | When |
+| --- | --- | --- |
+| 400 | `validation_error` | `query` missing or empty, or `limit` is not a positive integer |
+| 401 | `unauthorized` | Missing or invalid API key |
+
+Discovery is free. It places no hold and charges nothing.
+
+<Card title="Then inspect the match" icon="magnifying-glass" href="/api/inspect">
+  Read the full input schema before you run it.
+</Card>

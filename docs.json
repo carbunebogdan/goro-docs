@@ -13,86 +13,106 @@
     "default": "dark"
   },
   "navigation": {
-    "pages": [
+    "groups": [
       {
-        "group": "Getting started",
+        "group": "Guide",
         "pages": [
           "index",
-          "quickstart",
+          "guide/quickstart-skill",
+          "guide/quickstart-mcp",
+          "guide/quickstart-oauth",
+          "guide/quickstart-cli",
           "pricing"
+        ]
+      },
+      {
+        "group": "API reference",
+        "pages": [
+          "api/overview",
+          "api/discover",
+          "api/inspect",
+          "api/run",
+          "api/runs",
+          "api/wallet"
         ]
       },
       {
         "group": "Tools",
         "pages": [
-          "tools/overview"
-        ]
-      },
-      {
-        "group": "Shopping and commerce",
-        "pages": [
-          "tools/ecommerce/amazon-product",
-          "tools/ecommerce/amazon-reviews",
-          "tools/ecommerce/amazon-reviews_global",
-          "tools/ecommerce/amazon-search",
-          "tools/ecommerce/amazon-sellers_eu",
-          "tools/ecommerce/shopping-search"
-        ]
-      },
-      {
-        "group": "Maps and places",
-        "pages": [
-          "tools/maps/maps-places",
-          "tools/maps/maps-reviews"
-        ]
-      },
-      {
-        "group": "People and companies",
-        "pages": [
-          "tools/people/linkedin-company_employees",
-          "tools/people/linkedin-jobs",
-          "tools/people/linkedin-profile",
-          "tools/people/linkedin-search_name",
-          "tools/people/linkedin-search_services"
-        ]
-      },
-      {
-        "group": "Search",
-        "pages": [
-          "tools/search/news-search",
-          "tools/search/web-search"
-        ]
-      },
-      {
-        "group": "Social",
-        "pages": [
-          "tools/social/facebook-ads",
-          "tools/social/facebook-comments",
-          "tools/social/facebook-events",
-          "tools/social/facebook-group_posts",
-          "tools/social/facebook-page",
-          "tools/social/facebook-profile_posts",
-          "tools/social/facebook-reviews",
-          "tools/social/instagram-hashtag",
-          "tools/social/instagram-posts",
-          "tools/social/instagram-profile",
-          "tools/social/instagram-search",
-          "tools/social/instagram-url",
-          "tools/social/linkedin-post_search",
-          "tools/social/linkedin-profile_posts",
-          "tools/social/reddit-api",
-          "tools/social/reddit-posts",
-          "tools/social/tiktok-api",
-          "tools/social/tiktok-profile",
-          "tools/social/twitter-followers",
-          "tools/social/twitter-search",
-          "tools/social/youtube-comments",
-          "tools/social/youtube-transcript",
-          "tools/social/youtube-videos"
+          "tools/overview",
+          {
+            "group": "Search",
+            "pages": [
+              "tools/search/news-search",
+              "tools/search/web-search"
+            ]
+          },
+          {
+            "group": "Social",
+            "pages": [
+              "tools/social/facebook-ads",
+              "tools/social/facebook-comments",
+              "tools/social/facebook-events",
+              "tools/social/facebook-group_posts",
+              "tools/social/facebook-page",
+              "tools/social/facebook-profile_posts",
+              "tools/social/facebook-reviews",
+              "tools/social/instagram-hashtag",
+              "tools/social/instagram-posts",
+              "tools/social/instagram-profile",
+              "tools/social/instagram-search",
+              "tools/social/instagram-url",
+              "tools/social/linkedin-post_search",
+              "tools/social/linkedin-profile_posts",
+              "tools/social/reddit-api",
+              "tools/social/reddit-posts",
+              "tools/social/tiktok-api",
+              "tools/social/tiktok-profile",
+              "tools/social/twitter-followers",
+              "tools/social/twitter-search",
+              "tools/social/youtube-comments",
+              "tools/social/youtube-transcript",
+              "tools/social/youtube-videos"
+            ]
+          },
+          {
+            "group": "People and companies",
+            "pages": [
+              "tools/people/linkedin-company_employees",
+              "tools/people/linkedin-jobs",
+              "tools/people/linkedin-profile",
+              "tools/people/linkedin-search_name",
+              "tools/people/linkedin-search_services"
+            ]
+          },
+          {
+            "group": "Maps and places",
+            "pages": [
+              "tools/maps/maps-places",
+              "tools/maps/maps-reviews"
+            ]
+          },
+          {
+            "group": "Shopping and commerce",
+            "pages": [
+              "tools/ecommerce/amazon-product",
+              "tools/ecommerce/amazon-reviews",
+              "tools/ecommerce/amazon-reviews_global",
+              "tools/ecommerce/amazon-search",
+              "tools/ecommerce/amazon-sellers_eu",
+              "tools/ecommerce/shopping-search"
+            ]
+          }
         ]
       }
     ]
   },
+  "redirects": [
+    {
+      "source": "/quickstart",
+      "destination": "/guide/quickstart-skill"
+    }
+  ],
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"

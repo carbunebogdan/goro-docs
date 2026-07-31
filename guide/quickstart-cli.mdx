@@ -1,0 +1,116 @@
+---
+title: "For humans"
+sidebarTitle: "For humans"
+description: "Sign in, get a key, make a call from your terminal, and see exactly what it cost."
+---
+
+You do not need an agent to use Goro. A key and `curl` are enough to try the
+catalog, and the dashboard shows what every call cost.
+
+## 1. Sign in
+
+Go to [app.usegoro.ai](https://app.usegoro.ai) and sign in with Google or with
+an emailed code. A workspace and a wallet are created for you, with $1 in
+promotional credit that lasts 30 days. That is enough for a few hundred small
+calls, so you can try things before adding a card.
+
+## 2. Create a key
+
+Open **API keys** and create one. You see the full key exactly once, at
+creation, so copy it then. Goro stores only a hash of it, which means we cannot
+show it to you again and a database leak cannot leak a usable key.
+
+```bash
+export GORO_API_KEY="goro_live_..."
+```
+
+Check it works:
+
+```bash
+curl https://api.usegoro.ai/v1/whoami \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+## 3. Find a tool
+
+You do not need to know the catalog. Describe what you want.
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/discover \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "coffee shops in bucharest"}'
+```
+
+Each result carries a slug, guidance on when to use it, and a price. You can
+also browse the same catalog under **Tools** in the dashboard, or in the
+[tool reference](/tools/overview) here.
+
+## 4. See what it takes
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/inspect \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "maps.places"}'
+```
+
+`inspect` returns the tool's real input schema and a `sample_input` you can
+send almost as-is.
+
+## 5. Run it
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "maps.places",
+    "input": {
+      "searchStringsArray": ["specialty coffee"],
+      "locationQuery": "Bucharest, Romania",
+      "maxCrawledPlacesPerSearch": 5
+    }
+  }'
+```
+
+A fast call returns `200` with the rows in `output` and `cost_usd` telling you
+what it cost. A slower one returns `202` with a `run_id`, and you poll:
+
+```bash
+curl https://api.usegoro.ai/v1/runs/$RUN_ID \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+<Note>
+  Goro does not store results. The rows arrive in the response that finishes
+  the run and are never written to our database, so pipe the output to a file
+  if you want to keep it.
+</Note>
+
+## 6. Watch the money
+
+```bash
+curl https://api.usegoro.ai/v1/wallet/balance \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+The dashboard covers the same ground with more context:
+
+| Page | What it is for |
+| --- | --- |
+| **Wallet** | Balance, top-ups (minimum $5), the full ledger, and auto reload |
+| **Usage** | What you have spent over time, run by run |
+| **Budgets** | A daily or monthly cap, set to block calls or just notify you |
+| **API keys** | Create and revoke keys. Revoking takes effect immediately |
+
+Auto reload is off unless you turn it on. Saving a card does not enable it.
+
+<Columns cols={2}>
+  <Card title="Full API reference" icon="code" href="/api/overview">
+    Every endpoint, field and error code.
+  </Card>
+  <Card title="How pricing works" icon="receipt" href="/pricing">
+    Rates, totals and ceilings.
+  </Card>
+</Columns>

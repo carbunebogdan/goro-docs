@@ -1,0 +1,103 @@
+---
+title: "For AI agents: MCP"
+sidebarTitle: "For AI agents (MCP)"
+description: "Add Goro to Claude, Cursor or any MCP client as a connector, and your agent gets the whole catalog as five tools."
+---
+
+Goro runs a remote MCP server. Add one URL to your client and the agent gets
+five tools that reach the entire catalog, on the same balance and the same
+prices as the HTTP API.
+
+```
+https://mcp.usegoro.ai/mcp
+```
+
+## 1. Add the connector
+
+In Claude, Cursor, or any MCP client that supports remote servers, add a
+custom connector with the URL above. The client handles the rest: it registers
+itself, opens Goro's consent screen in a browser, and stores the token it gets
+back.
+
+Transport is Streamable HTTP. The server is stateless per request, so there is
+no session to keep alive and nothing to reconnect.
+
+## 2. Authorise it
+
+The consent screen asks for a Goro API key, the `goro_live_` one from
+[app.usegoro.ai](https://app.usegoro.ai). That key identifies which workspace
+and balance the connector will spend from. Paste it once, approve, and the
+client is connected.
+
+Two scopes exist, and a client that does not ask for a narrower grant gets
+both:
+
+| Scope | Grants |
+| --- | --- |
+| `tools:read` | `discover_tools`, `inspect_tool`, `get_run`, `wallet_balance` |
+| `tools:run` | `run_tool` |
+
+Access tokens last an hour and the client refreshes them silently. Refresh
+tokens last 30 days and rotate on every use.
+
+<Note>
+  Building the client yourself rather than using an existing one? The OAuth
+  flow is documented end to end in the
+  [OAuth quickstart](/guide/quickstart-oauth).
+</Note>
+
+## 3. The five tools
+
+| Tool | Scope | When the agent calls it |
+| --- | --- | --- |
+| `discover_tools` | `tools:read` | First, whenever the task needs live or external data and the exact slug is unknown |
+| `inspect_tool` | `tools:read` | Before running a tool whose input shape is not already known |
+| `run_tool` | `tools:run` | To actually execute a tool. This spends money |
+| `get_run` | `tools:read` | To poll a `run_tool` call that came back with a `run_id` |
+| `wallet_balance` | `tools:read` | To check available funds, or after an `insufficient_funds` error |
+
+That is the complete list. There is no per-tool MCP surface: the 38 catalog
+tools are reached through `run_tool` by slug, which is what keeps the tool list
+small enough for an agent to reason about.
+
+### What the agent sees
+
+`discover_tools` takes a plain-language `query` and an optional `limit`
+(default 5, maximum 20). Each result carries a slug, guidance on when to use
+it, its price and a fillable sample input, so the agent can often skip
+`inspect_tool` and go straight to `run_tool`.
+
+`run_tool` blocks for up to about 25 seconds. A fast tool returns its rows in
+that same response. A slower one returns a `run_id` and an explicit
+instruction to poll `get_run` until the status is terminal.
+
+`wallet_balance` returns the available balance and a `top_up_url`, which is
+what an agent should surface to a human when funds run out.
+
+## 4. Errors an agent will meet
+
+Tool errors carry the same `code` and `message` as the HTTP API, so one set of
+instructions covers both surfaces.
+
+| `code` | What the agent should do |
+| --- | --- |
+| `validation_error` | Read the `errors` array, fix every field, retry once |
+| `insufficient_funds` | Stop. Tell the human the amount and the `top_up_url` |
+| `budget_exceeded` | Stop. The wallet is fine, a spend cap is blocking. Do not ask for a top-up |
+| `not_found` | The slug does not exist. Run `discover_tools` again |
+| `forbidden` | The token is missing the scope the tool needs. Reauthorise |
+| `provider_error` | The tool failed and nothing was charged. Safe to retry |
+
+## What this shares with the API
+
+Everything. The MCP tools are thin wrappers over the same code paths as
+`/v1/discover`, `/v1/inspect`, `/v1/run`, `/v1/runs/{id}` and
+`/v1/wallet/balance`. Same catalog, same holds, same charges, same ledger.
+
+Results are not stored on this surface either. Rows arrive in the `run_tool`
+response, or in the `get_run` poll that finds the run finished. Have the agent
+write down anything it will need later.
+
+<Card title="Full API reference" icon="code" href="/api/overview">
+  The endpoints behind the five tools.
+</Card>

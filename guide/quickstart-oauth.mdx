@@ -1,0 +1,211 @@
+---
+title: "For applications: OAuth"
+sidebarTitle: "For applications (OAuth)"
+description: "Connect your product to Goro on a user's behalf with OAuth 2.1, PKCE and dynamic client registration."
+---
+
+Use this when you are building the client rather than configuring one: your own
+MCP client, an agent platform that connects on behalf of its users, or any
+application that should spend a user's Goro balance rather than your own.
+
+The authorisation server is at `https://mcp.usegoro.ai`, and the resource it
+issues tokens for is the MCP endpoint at `https://mcp.usegoro.ai/mcp`.
+
+<Warning>
+  OAuth access tokens authenticate the MCP endpoint only. The `/v1` HTTP API
+  takes `goro_live_` API keys and nothing else. If you want the HTTP API, you
+  want the [Skill quickstart](/guide/quickstart-skill).
+</Warning>
+
+## 1. Read the metadata
+
+Both documents are public and need no credentials.
+
+```bash
+curl https://mcp.usegoro.ai/.well-known/oauth-authorization-server
+```
+
+```json
+{
+  "issuer": "https://mcp.usegoro.ai",
+  "authorization_endpoint": "https://mcp.usegoro.ai/oauth/authorize",
+  "token_endpoint": "https://mcp.usegoro.ai/oauth/token",
+  "registration_endpoint": "https://mcp.usegoro.ai/oauth/register",
+  "response_types_supported": ["code"],
+  "grant_types_supported": ["authorization_code", "refresh_token"],
+  "code_challenge_methods_supported": ["S256"],
+  "token_endpoint_auth_methods_supported": ["none"],
+  "scopes_supported": ["tools:read", "tools:run"]
+}
+```
+
+`https://mcp.usegoro.ai/.well-known/oauth-protected-resource` describes the
+resource itself: which authorisation server protects it, the same two scopes,
+and that bearer tokens go in the header. An unauthenticated request to `/mcp`
+answers `401` with a `WWW-Authenticate` header pointing at that document, which
+is how a client discovers all of this without being told.
+
+## 2. Register a client
+
+Dynamic client registration is open, per RFC 7591. There is no client secret:
+Goro issues public clients and PKCE is the proof of possession.
+
+```bash
+curl -X POST https://mcp.usegoro.ai/oauth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "client_name": "Northwind Agents",
+    "redirect_uris": ["https://app.northwind.example/callback"]
+  }'
+```
+
+```json
+{
+  "client_id": "goro_client_9SjK2mQ1xR7bT4vZ",
+  "client_name": "Northwind Agents",
+  "redirect_uris": ["https://app.northwind.example/callback"],
+  "token_endpoint_auth_method": "none",
+  "grant_types": ["authorization_code", "refresh_token"],
+  "response_types": ["code"]
+}
+```
+
+`redirect_uris` must be a non-empty array of http or https URIs. Anything else
+answers `400 invalid_client_metadata`.
+
+Register once and store the `client_id`. This endpoint is rate limited per IP,
+10 per minute and 50 per day, so do not register on every connection.
+
+## 3. Send the user to authorise
+
+Generate a PKCE verifier and its S256 challenge, then redirect the user to the
+authorisation endpoint.
+
+```
+https://mcp.usegoro.ai/oauth/authorize
+  ?client_id=goro_client_9SjK2mQ1xR7bT4vZ
+  &redirect_uri=https://app.northwind.example/callback
+  &response_type=code
+  &code_challenge=<S256 challenge>
+  &code_challenge_method=S256
+  &scope=tools:read%20tools:run
+  &state=<your CSRF value>
+```
+
+| Parameter | Required | Notes |
+| --- | --- | --- |
+| `client_id` | yes | From registration |
+| `redirect_uri` | yes | Must exactly match one you registered |
+| `code_challenge` | yes | PKCE is mandatory |
+| `code_challenge_method` | | `S256` only. Defaults to `S256` when omitted |
+| `response_type` | | `code`. Any other value is rejected |
+| `scope` | | Space-delimited. Omitting it grants both scopes |
+| `state` | | Returned to you unchanged |
+| `resource` | | If sent, must be `https://mcp.usegoro.ai/mcp` |
+
+The user lands on Goro's consent screen, where they approve the connection with
+their `goro_live_` API key. That key is what binds the grant to their workspace
+and balance.
+
+On approval Goro redirects to your `redirect_uri` with `code` and your `state`.
+Errors that happen after the redirect URI has been validated come back the same
+way, as `error` and `error_description` on the query string. Errors before that
+point, an unknown `client_id` or a redirect URI that does not match, answer
+directly as JSON and never redirect.
+
+Authorisation codes are single use and live for 10 minutes.
+
+## 4. Exchange the code
+
+```bash
+curl -X POST https://mcp.usegoro.ai/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=authorization_code" \
+  -d "code=goro_ac_..." \
+  -d "redirect_uri=https://app.northwind.example/callback" \
+  -d "client_id=goro_client_9SjK2mQ1xR7bT4vZ" \
+  -d "code_verifier=<your PKCE verifier>"
+```
+
+```json
+{
+  "access_token": "goro_at_...",
+  "refresh_token": "goro_rt_...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "tools:read tools:run"
+}
+```
+
+All four fields are required on this grant. A missing one answers `400
+invalid_request`.
+
+## 5. Refresh
+
+```bash
+curl -X POST https://mcp.usegoro.ai/oauth/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=refresh_token" \
+  -d "refresh_token=goro_rt_..." \
+  -d "client_id=goro_client_9SjK2mQ1xR7bT4vZ"
+```
+
+Both fields are required. You get a new pair back, and the refresh token you
+sent is retired.
+
+| Lifetime | Value |
+| --- | --- |
+| Authorisation code | 10 minutes, single use |
+| Access token | 1 hour |
+| Refresh token | 30 days, rotated on every use |
+
+<Warning>
+  Replaying a burned authorisation code, or a refresh token that has already
+  been rotated, revokes the entire family of tokens descended from that
+  authorisation. This is deliberate: a replay means the token leaked, and the
+  safe response is to end the session. Store the newest refresh token and never
+  retry an old one.
+</Warning>
+
+## 6. Call the MCP endpoint
+
+```bash
+curl -X POST https://mcp.usegoro.ai/mcp \
+  -H "Authorization: Bearer goro_at_..." \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+```
+
+You get the five tools described in the
+[MCP quickstart](/guide/quickstart-mcp). `POST` carries every JSON-RPC message,
+and `DELETE` is accepted for clients that send it. `GET` answers `405`: this
+server offers no server-sent event stream, and conforming clients treat that as
+"no stream" and carry on.
+
+An expired or revoked token answers `401` with a `WWW-Authenticate` header, at
+which point refresh and retry.
+
+Scope is enforced per tool. Calling `run_tool` with a token that only carries
+`tools:read` answers a `forbidden` tool error naming the missing scope.
+
+## Error shapes
+
+The OAuth endpoints answer `{"error": ..., "error_description": ...}`, per RFC
+6749, which is a different shape from the `{"code", "message"}` used everywhere
+else in Goro.
+
+| `error` | When |
+| --- | --- |
+| `invalid_request` | A required parameter is missing, or PKCE is absent or not S256 |
+| `invalid_client` | Unknown `client_id` |
+| `invalid_client_metadata` | Registration payload is not acceptable |
+| `invalid_grant` | Unknown, expired, replayed or already-consumed code or refresh token |
+| `invalid_scope` | A scope outside `tools:read` and `tools:run` |
+| `invalid_target` | A `resource` other than `https://mcp.usegoro.ai/mcp` |
+| `unsupported_grant_type` | A `grant_type` other than the two supported |
+| `unsupported_response_type` | A `response_type` other than `code` |
+| `rate_limited` | Too many registration or authorisation attempts from one IP |
+
+<Card title="What the tools do" icon="plug" href="/guide/quickstart-mcp">
+  The five tools your token unlocks.
+</Card>

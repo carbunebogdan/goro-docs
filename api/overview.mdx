@@ -1,0 +1,208 @@
+---
+title: "API overview"
+description: "Base URL, authentication, money format, pagination and the full error contract."
+---
+
+The Goro HTTP API is nine endpoints over one base URL. Everything is JSON in
+and JSON out, and every response is either the documented success body or an
+error body with a `code` you can branch on.
+
+```
+https://api.usegoro.ai
+```
+
+| Endpoint | Method | What it does |
+| --- | --- | --- |
+| [`/v1/discover`](/api/discover) | POST | Rank the catalog against a plain-English query |
+| [`/v1/inspect`](/api/inspect) | POST | Read one tool's input schema, output sample and price |
+| [`/v1/run`](/api/run) | POST | Run a tool |
+| [`/v1/runs`](/api/runs) | GET | List your runs, newest first |
+| [`/v1/runs/{id}`](/api/runs) | GET | Fetch or advance one run |
+| [`/v1/runs/{id}/stop`](/api/runs) | POST | Stop a run that is still going |
+| [`/v1/wallet/balance`](/api/wallet) | GET | Current balance |
+| [`/v1/wallet/activities`](/api/wallet) | GET | The wallet ledger |
+| `/v1/whoami` | GET | Which workspace this key belongs to |
+
+## Authentication
+
+Every `/v1` endpoint takes a Goro API key as a Bearer token. Keys start with
+`goro_live_` and are created in the dashboard at
+[app.usegoro.ai](https://app.usegoro.ai).
+
+```bash
+curl https://api.usegoro.ai/v1/whoami \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+```json
+{
+  "workspace_id": "0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0",
+  "key_label": "production agent",
+  "created_at": "2026-07-14T09:12:44.183Z"
+}
+```
+
+`GET /v1/whoami` is the cheapest way to check that a key works. It reads
+nothing beyond the key row and costs nothing.
+
+A missing, malformed, unknown or revoked key answers `401` with the code
+`unauthorized`. Unknown and revoked keys answer identically, so a probe cannot
+learn whether a key exists.
+
+<Note>
+  The MCP server at `https://mcp.usegoro.ai/mcp` authenticates with OAuth
+  access tokens instead, not with `goro_live_` keys. See the
+  [MCP quickstart](/guide/quickstart-mcp).
+</Note>
+
+## Requests
+
+`POST` bodies must be a JSON object. A body that is not valid JSON, or is an
+array or a scalar, answers `400 validation_error` before anything else runs.
+
+Every response carries an `x-request-id` header. Send your own and Goro echoes
+it back; omit it and Goro mints one. Quote it in support email.
+
+## Money
+
+Every amount appears twice: as an integer in micro-USD, and as a human string.
+
+```json
+{ "available_micro": 1250000, "available_usd": "$1.25" }
+```
+
+One US dollar is 1,000,000 micro. Amounts are never floats, on the wire or in
+the database. The `_usd` strings use the fewest decimals that represent the
+amount exactly, so you will see `$4.00`, `$0.0030` and `$0.000001`.
+
+Do arithmetic on the `_micro` integers. Show the `_usd` strings to people.
+
+## Run results are not stored
+
+Goro records what a run cost, how many rows it produced and when it ran. It
+never writes the rows themselves to the database: `runs.output` is null in
+storage for every run, always.
+
+That shapes how you get results back:
+
+- A synchronous `POST /v1/run` returns the rows inline in its `200` body. This
+  is the normal path and the one to build on.
+- An asynchronous run returns `202`, and the `GET /v1/runs/{id}` poll that
+  finds the provider finished re-reads the rows from the provider and returns
+  them in that response.
+- Once a run is already terminal in Goro's records, a later `GET
+  /v1/runs/{id}` returns its status, counts and cost with `output: null`. The
+  rows are not stored, so there is nothing to return.
+- Providers age their datasets out. A re-read of an old run can come back
+  empty for that reason alone, which is a normal outcome and not an error.
+
+Keep the rows from the response that hands them to you.
+
+## Pagination
+
+`GET /v1/runs` and `GET /v1/wallet/activities` are cursor-paginated, newest
+first.
+
+| Parameter | Type | Notes |
+| --- | --- | --- |
+| `limit` | integer | Default 20, maximum 100. Must be a positive integer |
+| `cursor` | string | The `next_cursor` from the previous page |
+
+Responses carry `items` and `next_cursor`. A `next_cursor` of `null` means
+that was the last page.
+
+```bash
+curl "https://api.usegoro.ai/v1/runs?limit=50" \
+  -H "Authorization: Bearer $GORO_API_KEY"
+```
+
+Cursors are opaque base64url strings. Do not construct or parse them. A cursor
+Goro did not issue answers `400 validation_error` with the message
+`invalid cursor`.
+
+## Errors
+
+Every error body is `{"code": "...", "message": "..."}` plus any extra fields
+listed below. The `code` is stable and the thing to branch on. The `message`
+is written for a human and can change.
+
+```json
+{
+  "code": "insufficient_funds",
+  "message": "Insufficient funds: this run requires a hold of $0.1200. Top up to continue.",
+  "top_up_url": "https://app.usegoro.ai/billing",
+  "required_micro": 120000
+}
+```
+
+| Status | `code` | Extra fields | What happened |
+| --- | --- | --- | --- |
+| 400 | `validation_error` | `errors` | The request body or the tool input failed validation |
+| 401 | `unauthorized` | | Missing, malformed, unknown or revoked API key |
+| 402 | `insufficient_funds` | `top_up_url`, `required_micro`, `available_micro` | The wallet cannot cover the hold |
+| 402 | `budget_exceeded` | `period`, `cap_micro`, `spent_micro` | A workspace budget cap would be breached |
+| 403 | `forbidden` | | The credential is not allowed to do this. On the MCP server, a token missing the tool's scope |
+| 404 | `not_found` | | Unknown tool slug, or a run that is not yours |
+| 409 | `conflict` | | The run is already finished, so it cannot be stopped |
+| 429 | `rate_limited` | `retry_after_seconds` | Too many requests. A `Retry-After` header comes with it |
+| 500 | `internal_error` | | Something broke on our side. Nothing internal is disclosed |
+| 502 | `provider_error` | | The underlying tool failed. The hold is released, you are not charged |
+| 503 | `service_unavailable` | | Temporary. Retry shortly |
+
+`required_micro` and `available_micro` on a 402 are present when Goro knows
+them, which is not on every path, so treat both as optional.
+
+<Note>
+  `429` is currently raised by the OAuth endpoints, which throttle per IP. The
+  `/v1` endpoints do not enforce a request rate limit today. Handle the status
+  anyway: the shape above is what you will get when they do.
+</Note>
+
+### Validation errors
+
+`400 validation_error` carries an `errors` array, one entry per problem, so an
+agent can correct every field in one pass instead of one round trip per
+mistake.
+
+```json
+{
+  "code": "validation_error",
+  "message": "Input for maps.places failed validation (2 errors)",
+  "errors": [
+    {
+      "path": "/searchStringsArray",
+      "message": "must have required property 'searchStringsArray'",
+      "keyword": "required",
+      "params": { "missingProperty": "searchStringsArray" }
+    },
+    {
+      "path": "/maxCrawledPlacesPerSearch",
+      "message": "must be integer",
+      "keyword": "type",
+      "params": { "type": "integer" }
+    }
+  ]
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `path` | string | JSON pointer into your input. Empty string for problems with the request itself |
+| `message` | string | What is wrong with that field |
+| `keyword` | string | The JSON Schema keyword that failed: `required`, `type`, `maximum`, and so on |
+| `params` | object | The keyword's own details, verbatim |
+
+Tool inputs are validated as JSON Schema draft 7, with no type coercion. The
+string `"10"` is not the integer `10`, and sending it fails rather than being
+quietly fixed. Schema defaults are filled in for you before the run is quoted.
+
+### What an error costs
+
+Nothing, on every path above. A run that fails validation never reaches the
+provider and never places a hold. A run that places a hold and then fails,
+times out or is stopped has the entire hold released and settles at a final
+cost of zero.
+
+<Card title="Start with discover" icon="compass" href="/api/discover">
+  Find the tool that answers your question, with its price.
+</Card>

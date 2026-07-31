@@ -1,6 +1,6 @@
 ---
 title: "Pricing"
-description: "What a call costs, and why the number you see up front is a ceiling."
+description: "What a call costs: a rate per result, a total that follows the results, and a ceiling you are never charged above."
 ---
 
 ## Pay per call, no subscription
@@ -8,16 +8,40 @@ description: "What a call costs, and why the number you see up front is a ceilin
 There is no plan and no seat. You top up a balance, and each call draws from
 it. Unused balance stays yours.
 
-## A call is billed on what it actually used
+## Three numbers, three jobs
 
-Most tools charge per result, and how many results a request produces is not
-knowable before it runs. So a call has two numbers.
+<Steps>
+  <Step title="The rate">
+    Every tool publishes a rate per result, for example $0.0069 per profile or
+    $0.0075 per result page. That is what one row costs you, and it is on the
+    tool's page in the [catalog](/tools/overview).
+  </Step>
+  <Step title="The total">
+    The total is the rate times the results the call actually produced. Ask for
+    3 rows and you pay for 3. Ask for 300 and the call finds 40, you pay for 40.
+  </Step>
+  <Step title="The ceiling">
+    Before the call runs, `discover` and `inspect` return a ceiling for your
+    specific request. You are never charged above it. It is a maximum, not an
+    estimate of what you will pay.
+  </Step>
+</Steps>
+
+So a call reads like this: $0.0069 per profile, this request is capped at
+$0.14, the final charge lands wherever the results land.
+
+## Why the total is not fixed up front
+
+How many rows a request produces is not knowable before it runs. A search for a
+niche term returns four results; the same query next week returns forty. Goro
+bills what the call consumed rather than an average that would overcharge the
+small calls to cover the large ones.
 
 <Steps>
   <Step title="The hold">
-    Before the call runs, Goro reserves an estimate against your balance, sized
-    from what you asked for. Ask for 3 results and the hold is small; ask for
-    300 and it is larger.
+    Before the call runs, Goro reserves an amount against your balance, sized
+    from what you asked for. A small request holds a small amount, a large one
+    holds more. The hold never exceeds the ceiling.
   </Step>
   <Step title="The charge">
     When the call finishes, Goro reads what the underlying tool actually
@@ -25,14 +49,11 @@ knowable before it runs. So a call has two numbers.
   </Step>
 </Steps>
 
-This is why prices in `discover` and `inspect` read as "up to". The ceiling is
-real and you will never be charged above it. The final figure is usually lower.
-
 ## A call that returns nothing
 
-If a call completes with no results and cost us nothing, it bills nothing. If
-it returned nothing but the tool still charged us to start, you pay our margin
-on that, which is fractions of a cent.
+If a call completes with no results and the tool positively reports it cost us
+nothing, it bills nothing. If it returned nothing but the tool still charged us
+to start, you pay our margin on that, which is fractions of a cent.
 
 You are never charged for rows you did not receive.
 
@@ -48,7 +69,8 @@ plus any promotional credit, minus anything currently held by a running call.
 
 You can set a daily or monthly spend cap on a workspace, and choose whether
 hitting it blocks further calls or just notifies you. The cap is enforced when
-the hold is taken, so a call that would breach it never runs.
+the hold is taken, so a call that would breach it never runs. A blocked call
+answers `402` with the code `budget_exceeded`.
 
 ## Auto reload
 
@@ -57,6 +79,14 @@ your saved card to bring it back up to a target. That keeps a long-running
 agent from stopping mid-task because the balance ran out.
 
 Saving a card does not enable this. You turn it on explicitly.
+
+## Reading prices from the API
+
+`discover` and `inspect` return a `price` object per tool. It carries the
+markup applied to provider cost, the floor, and the ceiling for that tool, plus
+`billed_on_actual_usage: true` so an agent can tell a maximum from a fixed
+price without parsing English. Field by field, see the
+[API reference](/api/discover).
 
 <Note>
   Questions about a specific charge? Email

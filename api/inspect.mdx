@@ -1,0 +1,105 @@
+---
+title: "Inspect"
+description: "POST /v1/inspect. Read one tool's real input schema, a fillable sample input, an output sample and its price."
+---
+
+```
+POST https://api.usegoro.ai/v1/inspect
+```
+
+Everything you need to call a tool correctly on the first try. Call this when
+you know the slug but not the exact input shape.
+
+## Request
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `slug` | string | yes | The tool identifier, for example `maps.places` |
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/inspect \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "maps.places"}'
+```
+
+## Response
+
+```json
+{
+  "slug": "maps.places",
+  "name": "Google Maps places",
+  "category": "maps",
+  "description": "Search Google Maps for places matching a query and get back name, address, rating, review count, phone, website, and coordinates.",
+  "when_to_use": "Use when you need local businesses or points of interest, lead lists for a city or area, or place details like ratings and contact info.",
+  "input_schema": {
+    "type": "object",
+    "required": ["searchStringsArray"],
+    "properties": {
+      "language": { "type": "string", "default": "en" },
+      "locationQuery": { "type": "string" },
+      "searchStringsArray": { "type": "array", "items": { "type": "string" } },
+      "maxCrawledPlacesPerSearch": { "type": "integer", "default": 20 }
+    }
+  },
+  "sample_input": {
+    "language": "en",
+    "searchStringsArray": "<searchStringsArray>",
+    "maxCrawledPlacesPerSearch": 20
+  },
+  "output_sample": {
+    "name": "Origo Coffee",
+    "phone": "+40 21 000 0000",
+    "rating": 4.6,
+    "address": "Strada Lipscani 9, Bucharest",
+    "website": "https://origocoffee.ro"
+  },
+  "price": {
+    "type": "cost_plus",
+    "markup": 3,
+    "min_micro": 2000,
+    "min_usd": "$0.0020",
+    "max_micro": 6000000,
+    "max_usd": "$6.00",
+    "billed_on_actual_usage": true,
+    "summary": "up to $6.00 per call (the actual hold scales with what you request), billed on actual usage (3x provider cost, minimum $0.0020)"
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `slug` | string | The identifier you passed |
+| `name` | string | Human name |
+| `category` | string | Catalog category |
+| `description` | string | What the tool does |
+| `when_to_use` | string | When this tool is the right choice |
+| `input_schema` | object | JSON Schema draft 7. The real schema, validated on every run |
+| `sample_input` | object | Required fields plus optional fields that have defaults |
+| `output_sample` | object | One illustrative row of what the tool returns |
+| `price` | object | Same shape as in [`discover`](/api/discover#price) |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged and hands back its
+  rows untouched. `input_schema` is that tool's own schema, not a translation,
+  so any field the tool accepts works even when the schema does not name it.
+  The schema is what Goro validates against, so undeclared fields pass through
+  rather than being rejected.
+</Note>
+
+`inspect` deliberately does not expose provider internals. There is no field
+naming which upstream service or actor runs the job.
+
+## Errors
+
+| Status | `code` | When |
+| --- | --- | --- |
+| 400 | `validation_error` | `slug` missing or empty |
+| 401 | `unauthorized` | Missing or invalid API key |
+| 404 | `not_found` | Unknown slug, or a tool that is not active. Message reads `unknown endpoint: {slug}` |
+
+Inspection is free. It places no hold and charges nothing.
+
+<Card title="Now run it" icon="play" href="/api/run">
+  Send the input, get the rows.
+</Card>

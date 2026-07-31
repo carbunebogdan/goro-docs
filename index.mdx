@@ -1,5 +1,5 @@
 ---
-title: "Goro"
+title: "Introduction"
 description: "One connection gives your agent search, scraping and enrichment across the real world."
 ---
 
@@ -34,6 +34,20 @@ Goro is one credential and one balance for all of them.
   </Step>
 </Steps>
 
+## Two surfaces, one catalog
+
+Goro speaks HTTP and MCP, over the same catalog, the same balance and the same
+prices.
+
+| Surface | Endpoint | Authenticates with |
+| --- | --- | --- |
+| HTTP API | `https://api.usegoro.ai` | A `goro_live_` API key as a Bearer token |
+| MCP server | `https://mcp.usegoro.ai/mcp` | An OAuth 2.1 access token |
+
+The MCP server exposes five tools (`discover_tools`, `inspect_tool`,
+`run_tool`, `get_run`, `wallet_balance`), each a thin wrapper over the same
+code the HTTP endpoints call.
+
 ## What Goro does not keep
 
 Results are not stored. Goro records what a call cost, how many rows it
@@ -43,6 +57,25 @@ written to our database.
 That is deliberate: this catalog can reach personal data about people who have
 no relationship with us, and the safest place for it is nowhere.
 
-<Card title="Start here" icon="rocket" href="/quickstart">
-  Make your first call in about five minutes.
-</Card>
+It has a consequence worth planning for. A synchronous call returns its rows
+inline, and an asynchronous poll re-reads them from the provider that produced
+them. Providers age their datasets out, so a run's rows can stop being
+available even though the run's status and cost stay readable forever. Keep the
+rows from the response that hands them to you.
+
+## Start here
+
+<Columns cols={2}>
+  <Card title="For AI agents: Skill" icon="sparkles" href="/guide/quickstart-skill">
+    Teach an agent the API in one file, no client library.
+  </Card>
+  <Card title="For AI agents: MCP" icon="plug" href="/guide/quickstart-mcp">
+    Add Goro to Claude, Cursor or any MCP client as a connector.
+  </Card>
+  <Card title="For applications: OAuth" icon="key" href="/guide/quickstart-oauth">
+    Let your product connect on a user's behalf, with their balance.
+  </Card>
+  <Card title="For humans" icon="user" href="/guide/quickstart-cli">
+    Get a key, make a call, watch the balance move.
+  </Card>
+</Columns>
