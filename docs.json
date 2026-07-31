@@ -1,37 +1,28 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Goro",
+  "description": "One connection gives your agent search, scraping and enrichment across the real world. One balance, pay per call, no subscription.",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#57694a",
+    "light": "#7d8f6e",
+    "dark": "#3f4d35"
   },
   "favicon": "/favicon.svg",
+  "appearance": {
+    "default": "dark"
+  },
   "navigation": {
     "pages": [
       {
-        "group": "Getting Started",
+        "group": "Getting started",
         "pages": [
           "index",
-          "quickstart"
+          "quickstart",
+          "pricing"
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -41,13 +32,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:hello@usegoro.ai"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://app.mintlify.com"
+      "label": "Get started",
+      "href": "https://app.usegoro.ai"
     }
   },
   "contextual": {
@@ -56,7 +47,6 @@
       "view",
       "chatgpt",
       "claude",
-      "perplexity",
       "mcp",
       "cursor",
       "vscode"
@@ -64,9 +54,7 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "website": "https://usegoro.ai"
     }
   }
 }

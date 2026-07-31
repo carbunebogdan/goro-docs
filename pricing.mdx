@@ -1,0 +1,65 @@
+---
+title: "Pricing"
+description: "What a call costs, and why the number you see up front is a ceiling."
+---
+
+## Pay per call, no subscription
+
+There is no plan and no seat. You top up a balance, and each call draws from
+it. Unused balance stays yours.
+
+## A call is billed on what it actually used
+
+Most tools charge per result, and how many results a request produces is not
+knowable before it runs. So a call has two numbers.
+
+<Steps>
+  <Step title="The hold">
+    Before the call runs, Goro reserves an estimate against your balance, sized
+    from what you asked for. Ask for 3 results and the hold is small; ask for
+    300 and it is larger.
+  </Step>
+  <Step title="The charge">
+    When the call finishes, Goro reads what the underlying tool actually
+    charged, applies our margin, takes that, and releases the rest of the hold.
+  </Step>
+</Steps>
+
+This is why prices in `discover` and `inspect` read as "up to". The ceiling is
+real and you will never be charged above it. The final figure is usually lower.
+
+## A call that returns nothing
+
+If a call completes with no results and cost us nothing, it bills nothing. If
+it returned nothing but the tool still charged us to start, you pay our margin
+on that, which is fractions of a cent.
+
+You are never charged for rows you did not receive.
+
+## Holds are not charges
+
+A hold reserves balance, it does not spend it. If a call fails, times out, or
+you stop it, the whole hold is released and nothing is charged.
+
+Your available balance is what you can spend right now: your topped-up cash,
+plus any promotional credit, minus anything currently held by a running call.
+
+## Budgets
+
+You can set a daily or monthly spend cap on a workspace, and choose whether
+hitting it blocks further calls or just notifies you. The cap is enforced when
+the hold is taken, so a call that would breach it never runs.
+
+## Auto reload
+
+Optionally, when your balance falls below a threshold you set, Goro charges
+your saved card to bring it back up to a target. That keeps a long-running
+agent from stopping mid-task because the balance ran out.
+
+Saving a card does not enable this. You turn it on explicitly.
+
+<Note>
+  Questions about a specific charge? Email
+  [hello@usegoro.ai](mailto:hello@usegoro.ai) with the run id and we will
+  break it down.
+</Note>

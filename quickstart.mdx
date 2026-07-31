@@ -1,47 +1,76 @@
 ---
 title: "Quickstart"
-description: "Begin with a guide on the fastest path to a successful outcome"
+description: "Make your first call in about five minutes."
 ---
 
-Describe how someone begins using your product. What is the first thing they need to do? Are there any prerequisites?
+## 1. Get a key
 
-A quickstart should take someone from zero to using your product. They'll get a quick win and a sense of what they can accomplish.
+Create a workspace at [app.usegoro.ai](https://app.usegoro.ai) and generate an
+API key. New workspaces start with a small promotional balance, so you can make
+real calls before adding a card.
 
-## Prerequisites
+Keys look like `goro_live_...` and go in an `Authorization` header.
 
-Before you begin, you must have:
+## 2. Find a tool
 
-- Requirement one (for example, Node.js 18+, a free account, an API key)
-- Requirement two (for example, a compatible device, a compatible browser, a compatible operating system)
+You do not need to know the catalog. Describe what you want:
 
-## Get started
+```bash
+curl -X POST https://api.usegoro.ai/v1/discover \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "tweets about ai agents"}'
+```
 
-<Steps>
-  <Step title="Install">
-    Describe how to install your product or sign up.
+Each result carries a slug and a price. Prices read as a ceiling, never an
+exact figure, because a call is billed on what it actually consumes.
 
-    ```bash
-    npm install your-package
-    ```
-  </Step>
-  <Step title="Configure">
-    Describe any setup or configuration needed before first use.
+## 3. See what it takes
 
-    ```bash
-    your-cli init
-    ```
-  </Step>
-  <Step title="Run it">
-    Show the first thing a user does to see it working.
+```bash
+curl -X POST https://api.usegoro.ai/v1/inspect \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug": "web.search"}'
+```
 
-    ```bash
-    your-cli start
-    ```
-  </Step>
-</Steps>
+`inspect` returns the tool's real input schema and a `sample_input` you can
+send as-is.
 
-<Tip>
-  Give people a way to get help. This could be a link to a support page, a chat with a customer support agent, or a forum for your product.
+<Note>
+  Goro forwards your input to the underlying tool and hands back its rows
+  untouched. The schema you see in `inspect` is the real one, not a translation,
+  so anything the tool accepts, you can send.
+</Note>
 
-  Example: Need help? Reach out to us at [support@yourcompany.com](mailto:support@yourcompany.com).
-</Tip>
+## 4. Run it
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "web.search",
+    "input": { "queries": "best espresso machines", "maxPagesPerQuery": 1 }
+  }'
+```
+
+A fast call returns `200` with the rows. A slower one returns `202` with a
+`run_id`, and you poll `GET /v1/runs/{run_id}` until it completes.
+
+## 5. Connect an agent instead
+
+If you are using Claude, Cursor or another MCP client, skip the HTTP API and
+add Goro as a connector:
+
+```
+https://mcp.usegoro.ai
+```
+
+The client will walk you through authorising it. Your agent then sees
+`discover_tools`, `inspect_tool`, `run_tool`, `get_run` and `wallet_balance`,
+and can find and call anything in the catalog on its own.
+
+<Card title="How billing works" icon="wallet" href="/pricing">
+  Holds, actual-cost billing and what happens when a call returns nothing.
+</Card>
