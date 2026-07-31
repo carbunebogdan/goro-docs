@@ -72,8 +72,22 @@
     ]
   },
   {
+    "group": "Video generation",
+    "pages": [
+      "tools/video/video-grok",
+      "tools/video/video-kling",
+      "tools/video/video-minimax",
+      "tools/video/video-seedance",
+      "tools/video/video-seedance_pro",
+      "tools/video/video-veo"
+    ]
+  },
+  {
     "group": "Voice and audio",
     "pages": [
+      "tools/voice/voice-clone",
+      "tools/voice/voice-delete",
+      "tools/voice/voice-list",
       "tools/voice/voice-speak",
       "tools/voice/voice-transcribe"
     ]

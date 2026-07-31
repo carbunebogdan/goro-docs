@@ -55,6 +55,7 @@ const CATEGORY_ORDER = [
   "maps",
   "ecommerce",
   "image",
+  "video",
   "voice",
 ];
 
@@ -65,6 +66,7 @@ const CATEGORY_LABEL = {
   maps: "Maps and places",
   ecommerce: "Shopping and commerce",
   image: "Image generation",
+  video: "Video generation",
   voice: "Voice and audio",
 };
 

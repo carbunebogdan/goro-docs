@@ -5,7 +5,7 @@ description: "Turn text into natural speech and get back a link to the audio fil
 
 Turn text into natural speech and get back a link to the audio file. Choose the model, the output format and the speaking rate.
 
-<Note>Use when you need spoken audio from text: a voiceover line, a narration clip, an announcement, or an audio version of something you wrote. Up to 2,000 characters per call, about two minutes of speech. The audio is returned as a link that works for 24 hours, not as inline data, so download it if you need to keep it. Billed on the UTF-8 byte length of your text, so the exact price is known before the call.</Note>
+<Note>Use when you need spoken audio from text: a voiceover line, a narration clip, an announcement, or an audio version of something you wrote. Up to 2,000 characters per call, about two minutes of speech. The audio is returned as a link that works for 24 hours, not as inline data, so download it if you need to keep it. Billed on the UTF-8 byte length of your text, so the exact price is known before the call. To speak in a voice you cloned with voice.clone, pass its voice_id; you can only use voices your own workspace owns.</Note>
 
 ## Price
 
@@ -23,6 +23,7 @@ No call costs less than $0.0020 or more than $0.36, the price of the largest req
 | `prosody` | `object` |  | Delivery adjustments. |
 | `prosody.speed` | `number` |  | Speaking rate. 1 is normal, 0.5 is half speed, 2 is double. Defaults to `1`. |
 | `prosody.volume` | `number` |  | Loudness adjustment in dB. Defaults to `0`. |
+| `voice_id` | `string` |  | Speak in one of your own cloned voices, as returned by voice.clone or voice.list. Leave it out to use the stock voice. A voice_id belonging to another workspace is refused exactly as an unknown one is. |
 | `normalize` | `boolean` |  | Expand numbers, dates and abbreviations before speaking them. Leave on unless you have already written the text exactly as it should sound. Defaults to `true`. |
 | `mp3_bitrate` | `64`, `128`, `192` |  | MP3 quality in kbps. Ignored for opus. Defaults to `128`. |
 

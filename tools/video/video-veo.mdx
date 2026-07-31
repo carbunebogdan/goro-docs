@@ -1,0 +1,47 @@
+---
+title: "Veo 3.1 video"
+description: "Generate an 8 second video with sound from a text prompt using Google Veo 3.1, at its Quality tier in 1080p. Returns the URL of the generated MP4. That URL is t"
+---
+
+Generate an 8 second video with sound from a text prompt using Google Veo 3.1, at its Quality tier in 1080p. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+
+<Note>Use when the video itself is the deliverable and it has to hold up: an ad, a hero clip, a pitch asset. The strongest model in the catalog for prompt following, physical realism and synchronised audio, and the most expensive by a wide margin. Text to video only, one flat price per video whatever you ask for.</Note>
+
+## Price
+
+**$3.8250 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to film. Describe the subject, the action, the camera move, the lighting and the mood; dialogue and sound effects can be described too and will be generated as audio. |
+| `duration` | `8` |  | Fixed at 8 seconds. This model is priced per video rather than per second, so a shorter clip would cost you the same. Defaults to `8`. |
+| `resolution` | `1080p` |  | Fixed at 1080p. Each resolution is a different price upstream, and this endpoint quotes one exact price, so the others would get their own endpoints. Defaults to `"1080p"`. |
+| `aspect_ratio` | `16:9`, `9:16` |  | Shape of the output video. 16:9 for landscape, 9:16 for vertical. Defaults to `"16:9"`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"video.veo","input":{"prompt":"A paper boat drifting across a still pond at dawn, slow push in, mist on the water, soft birdsong."}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-video-1.mp4"
+]
+```

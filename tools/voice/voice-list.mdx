@@ -1,0 +1,49 @@
+---
+title: "List your voices"
+description: "List the voice models this workspace owns, with the id to pass to voice.speak, when each was created and what consent was attested for it."
+---
+
+List the voice models this workspace owns, with the id to pass to voice.speak, when each was created and what consent was attested for it.
+
+<Note>Use when you need the voice_id of a voice you cloned earlier, or to check what this workspace is still paying to keep. Takes no input. Only ever returns voices belonging to the caller's own workspace.</Note>
+
+## Price
+
+**$0.0020 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"voice.list","input":{}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "label": "Narrator, warm male",
+  "status": "ready",
+  "voice_id": "a1b2c3d4e5f60718293a4b5c",
+  "created_at": "2026-01-02T09:30:00.000Z",
+  "sample_count": 3,
+  "consent_statement": "The person whose voice these recordings capture has given documented consent to have their voice cloned and synthesised for this use, and I can produce that consent on request. A recording being public is not consent, and neither is owning the rights to the recording.",
+  "consent_attested_at": "2026-01-02T09:30:00.000Z"
+}
+```

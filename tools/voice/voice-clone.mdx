@@ -1,0 +1,52 @@
+---
+title: "Clone a voice"
+description: "Create a reusable voice model from one or more recordings of a person speaking, and get back a voice_id you can pass to voice.speak. Requires an explicit consen"
+---
+
+Create a reusable voice model from one or more recordings of a person speaking, and get back a voice_id you can pass to voice.speak. Requires an explicit consent attestation on every call.
+
+<Note>Use when you need the SAME custom voice repeatedly: a narrator for a series, a brand voice, a character. Give 1 to 20 public https links to clean recordings of one speaker, at least ten seconds each; more samples and more variety give a closer match. The voice belongs to your workspace and no other workspace can use it. It stays available until you delete it with voice.delete. You must set consent_attested to true, which is a statement that the person whose voice this is has agreed to it being cloned: read the field description before you send it, and do not send it on a voice you have no consent for.</Note>
+
+## Price
+
+**$0.03 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `label` | `string` | yes | A name for this voice so you can recognise it later in voice.list. Not used by the model, only for your own reference. |
+| `sample_urls` | `array` | yes | Public http or https links to recordings of the SAME speaker. At least ten seconds of clear speech per clip; several clips capture more range than one. Links to private, internal or loopback addresses are refused. Up to 25 MB per file and 100 MB in total. |
+| `consent_attested` | `boolean` | yes | Must be set to true. By setting it you attest that the person whose voice these recordings capture has given documented consent to have their voice cloned and synthesised for this use, and that you can produce that consent on request. A recording being public is not consent, and neither is owning the rights to the recording: those are different permissions and you need the one from the person. What you attest and when is recorded against the voice. See the voice clause of the Acceptable Use Policy. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"voice.clone","input":{"label":"Narrator, warm male","sample_urls":["https://example.com/media/narrator-take-1.mp3"],"consent_attested":true}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "label": "Narrator, warm male",
+  "status": "ready",
+  "voice_id": "a1b2c3d4e5f60718293a4b5c",
+  "created_at": "2026-01-02T09:30:00.000Z",
+  "sample_count": 3,
+  "consent_statement": "The person whose voice these recordings capture has given documented consent to have their voice cloned and synthesised for this use, and I can produce that consent on request. A recording being public is not consent, and neither is owning the rights to the recording.",
+  "consent_attested_at": "2026-01-02T09:30:00.000Z"
+}
+```

@@ -1,0 +1,48 @@
+---
+title: "Seedance 2.0 video"
+description: "Generate a video from a text prompt using ByteDance Seedance 2.0, the full model, at 720p with optional audio. Returns the URL of the generated MP4. That URL is"
+---
+
+Generate a video from a text prompt using ByteDance Seedance 2.0, the full model, at 720p with optional audio. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+
+<Note>Use when Seedance Mini is close but not sharp enough: the same prompt handling and multi-shot consistency with noticeably better detail and motion. Billed per second of video you ask for, at twice the Mini rate.</Note>
+
+## Price
+
+**$0.6150 per second of video.** An exact rate, not an estimate. The total is that rate times the seconds of video in your request, so you can work out what a call costs before you make it.
+
+No call costs less than $0.0020 or more than $9.2250, the price of the largest request this endpoint takes, 15 seconds of video. `discover` and `inspect` quote your exact request before it runs.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to film. Describe the subject, the action, the camera move, the lighting and the mood; long, shot-by-shot briefs work well here. |
+| `duration` | `integer` |  | Length of the generated video in seconds. This is what you are billed on, and it is the only field that changes the price. Defaults to `5`. |
+| `resolution` | `720p` |  | Fixed at 720p. Resolution changes the price per second, and this endpoint quotes one exact rate, so 1080p and 4K would get their own endpoints. Defaults to `"720p"`. |
+| `aspect_ratio` | `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `21:9` |  | Shape of the output video. Defaults to `"16:9"`. |
+| `generate_audio` | `boolean` |  | Whether the video comes with a generated soundtrack. Does not change the price. Defaults to `true`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"video.seedance_pro","input":{"prompt":"A chef plating a dish in a warm kitchen, slow dolly around the pass, steam catching the window light."}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-video-1.mp4"
+]
+```
