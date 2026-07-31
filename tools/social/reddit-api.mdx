@@ -9,7 +9,9 @@ Reddit posts, comments, communities and users read through Reddit's own API, ret
 
 ## Price
 
-Billed on what the call actually consumes, at roughly **$0.0030 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+**$0.0090 per item_returned.** That is the rate you pay for each item_returned the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer item_returneds costs less. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
 
 ## Input
 
