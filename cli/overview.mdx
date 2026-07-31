@@ -14,13 +14,15 @@ happened so a shell script can branch on it.
 ## Install
 
 ```bash
-npm install -g goro
+npm install -g @goroo/cli
 ```
 
+That installs a `goro` command. The package is scoped because the bare `goro`
+name on npm belongs to an unrelated project.
+
 <Note>
-  Prefer not to install globally? `npx goro discover -q "..."` works the same
-  way, and running from a clone is `cd cli && npm install && npm run build &&
-  npm link`.
+  Prefer not to install globally? `npx @goroo/cli discover -q "..."` works the
+  same way.
 </Note>
 
 ## First run
