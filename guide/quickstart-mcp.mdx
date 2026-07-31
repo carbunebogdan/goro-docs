@@ -94,9 +94,10 @@ Everything. The MCP tools are thin wrappers over the same code paths as
 `/v1/discover`, `/v1/inspect`, `/v1/run`, `/v1/runs/{id}` and
 `/v1/wallet/balance`. Same catalog, same holds, same charges, same ledger.
 
-Results are not stored on this surface either. Rows arrive in the `run_tool`
-response, or in the `get_run` poll that finds the run finished. Have the agent
-write down anything it will need later.
+Rows arrive in the `run_tool` response, or in the `get_run` poll that finds the
+run finished. Polling a finished run is the supported way to collect a slow
+result. Results are deleted once collected, and after 24 hours regardless, so
+have the agent write down anything it will need later.
 
 <Card title="Full API reference" icon="code" href="/api/overview">
   The endpoints behind the five tools.

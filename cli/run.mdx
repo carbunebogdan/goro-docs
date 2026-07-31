@@ -97,9 +97,9 @@ goro run -s web.search -i '{"queries":"ai agents"}' -o results.json
 ```
 
 <Warning>
-  Results are not stored by the gateway. `runs get` returns the run's status and
-  cost forever, but its `output` is `null` once the response has been handed
-  back. If you need the rows, capture them with `-o` or `-j` at run time.
+  `runs get` returns a run's status and cost forever, but its rows only until
+  you collect them and at most 24 hours after the run finished. After that
+  `output` is `null`. Capture anything you need with `-o` or `-j`.
 </Warning>
 
 ## When it does not work

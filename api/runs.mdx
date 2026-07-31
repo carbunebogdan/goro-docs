@@ -87,13 +87,14 @@ Stop polling once `status` is `COMPLETED`, `FAILED`, `STOPPED` or `TIMED_OUT`.
 The poll that finds the provider finished returns the rows in `output`. That
 is the response to keep.
 
-Goro never stores results, so this endpoint re-reads them from the provider's
-own copy. That works whether the run is still finishing or already settled: a
-poll that arrives after the run completed still returns its rows.
+A finished run holds its rows until you collect them, so this works whether the
+run is still finishing or already settled: a poll that arrives after the run
+completed still returns its rows. That is the whole point of the async path.
 
-The re-read is best effort. Providers age their datasets out, so `output: null`
-on an older run is a normal outcome rather than an error, and it is the reason
-to write results somewhere yourself if you need them long term.
+Once collected, or once the run is more than 24 hours old, the rows are
+deleted. Goro then falls back to re-reading the provider's own copy, which is
+best effort, so `output: null` on an older run is a normal outcome rather than
+an error. Write results somewhere yourself if you need them long term.
 
 ## Stop a run
 

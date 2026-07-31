@@ -77,11 +77,12 @@ amount exactly, so you will see `$4.00`, `$0.0030` and `$0.000001`.
 
 Do arithmetic on the `_micro` integers. Show the `_usd` strings to people.
 
-## Run results are not stored
+## Run results are held only until you collect them
 
-Goro records what a run cost, how many rows it produced and when it ran. It
-never writes the rows themselves to the database: `runs.output` is null in
-storage for every run, always.
+Goro records what a run cost, how many rows it produced and when it ran, and
+keeps that permanently. The rows themselves are held so a slow run stays
+collectable, then deleted shortly after your first successful fetch and
+unconditionally 24 hours after the run finished.
 
 That shapes how you get results back:
 

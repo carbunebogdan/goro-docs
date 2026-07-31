@@ -67,8 +67,8 @@ actually charged. Every amount comes as both an integer in micro-USD (one
 millionth of a dollar, so there is no floating point drift) and a formatted
 string.
 
-`output` is `null` here because results are not stored. Capture them at run
-time with `goro run ... -o file.json`.
+`output` is `null` here once the rows have been collected, or once the run is
+more than 24 hours old. Capture them with `goro run ... -o file.json`.
 
 ## runs list
 

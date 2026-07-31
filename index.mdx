@@ -48,14 +48,18 @@ The MCP server exposes five tools (`discover_tools`, `inspect_tool`,
 `run_tool`, `get_run`, `wallet_balance`), each a thin wrapper over the same
 code the HTTP endpoints call.
 
-## What Goro does not keep
+## What Goro keeps, and for how long
 
-Results are not stored. Goro records what a call cost, how many rows it
-returned and when it ran. The rows themselves are handed to you and never
-written to our database.
+Goro records what a call cost, how many rows it returned and when it ran. That
+part is permanent.
 
-That is deliberate: this catalog can reach personal data about people who have
-no relationship with us, and the safest place for it is nowhere.
+The rows themselves are held only until you collect them. A finished run keeps
+its results so a slow job stays collectable, then they are deleted shortly
+after your first fetch, and in all cases 24 hours after the run finished.
+
+The window is deliberately the shortest one that makes a paid run reliably
+deliverable: this catalog can reach personal data about people who have no
+relationship with us. Capture what you need when you get it.
 
 It has a consequence worth planning for. A synchronous call returns its rows
 inline, and an asynchronous poll re-reads them from the provider that produced
