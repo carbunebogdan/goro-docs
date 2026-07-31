@@ -35,7 +35,7 @@ Billing follows actual usage, so a call that returns fewer results costs less. `
 curl -X POST https://api.usegoro.ai/v1/run \
   -H "Authorization: Bearer $GORO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"slug":"twitter.followers","input":{"maxFollowers":200,"maxFollowings":200,"getFollowers":"example"}}'
+  -d '{"slug":"twitter.followers","input":{"maxFollowers":200,"maxFollowings":200,"getFollowers":true,"getFollowing":false}}'
 ```
 
 ## Response

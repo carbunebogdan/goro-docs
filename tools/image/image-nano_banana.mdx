@@ -1,0 +1,47 @@
+---
+title: "Nano Banana 2 image"
+description: "Generate one original image from a text prompt using Google Nano Banana 2, at 2K resolution. Returns the URL of the generated image. Those URLs are temporary: k"
+---
+
+Generate one original image from a text prompt using Google Nano Banana 2, at 2K resolution. Returns the URL of the generated image. Those URLs are temporary: kie.ai deletes generated media after 14 days, so download anything you need to keep.
+
+<Note>Use when you need an image made to order rather than found: a hero image, an ad creative, a product mockup, an illustration for a post. Strongest of the four image models at prompt following and legible text inside the image. Text to image only, one image per call.</Note>
+
+## Price
+
+**$0.18 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to draw. Describe subject, composition, style, lighting and mood; the more specific, the closer the result. |
+| `resolution` | `2K` |  | Fixed at 2K. Resolution changes what a generation costs, and this endpoint quotes one exact price, so other resolutions get their own endpoints. Defaults to `"2K"`. |
+| `aspect_ratio` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` |  | Shape of the output image. Defaults to `"1:1"`. |
+| `output_format` | `png`, `jpg` |  | File format of the generated image. Defaults to `"png"`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"image.nano_banana","input":{"prompt":"example"}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-image-1.png"
+]
+```

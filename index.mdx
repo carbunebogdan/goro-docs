@@ -4,11 +4,12 @@ description: "One connection gives your agent search, scraping and enrichment ac
 ---
 
 Goro is a pay-per-call gateway. Your agent connects once, and gets a catalog of
-tools that reach out to the real web: search, social profiles and posts, maps
-and reviews, product and jobs data.
+tools that reach the real world: search, social profiles and posts, maps and
+reviews, product and jobs data, image generation, and voice in both directions.
 
-You hold a prepaid balance. Each call bills what it actually cost, plus our
-margin. There is no subscription and no seat.
+You hold a prepaid balance and each call draws from it. There is no
+subscription and no seat. A scrape bills what it actually consumed plus our
+margin; an image or a voice call bills a price you can read before you make it.
 
 ## Why it exists
 
@@ -61,11 +62,12 @@ The window is deliberately the shortest one that makes a paid run reliably
 deliverable: this catalog can reach personal data about people who have no
 relationship with us. Capture what you need when you get it.
 
-It has a consequence worth planning for. A synchronous call returns its rows
-inline, and an asynchronous poll re-reads them from the provider that produced
-them. Providers age their datasets out, so a run's rows can stop being
-available even though the run's status and cost stay readable forever. Keep the
-rows from the response that hands them to you.
+It has a consequence worth planning for. A run's rows can stop being available
+even though its status and cost stay readable forever, so keep the rows from
+the response that hands them to you. The same goes double for media: a voice
+call answers with a link to audio that expires on that same 24 hour clock, and
+an image call answers with links held by the model provider. Download the file,
+do not save the URL.
 
 ## Start here
 

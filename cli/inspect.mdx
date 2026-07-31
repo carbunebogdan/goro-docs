@@ -14,7 +14,8 @@ web.search  Web search
   about     Run a Google web search and get back ranked organic results with title, url, and snippet.
   use when  Use when you need current information from the web, to find pages about a topic, or to
             answer questions that need fresh sources. Billed per result page, about 10 results each.
-  price     up to $1.00 for a single call, and never more than that.
+  price     $0.0075 per page
+            up to $1.00 for a single call, and never more than that.
             Billed on actual usage, at 3x what the provider charged us, minimum $0.0020.
             The hold scales with what you request. You are charged what the call cost.
 
@@ -44,9 +45,15 @@ Plus the [global options](/cli/overview#global-options).
 
 ## The input table is the real schema
 
-Goro forwards your input to the underlying tool unchanged and hands back its
-rows untouched. The fields listed are the fields the tool itself accepts, not a
-translation, so anything the tool takes works even if it is not in the table.
+On the passthrough tools, which is most of the catalog, Goro forwards your
+input to the underlying tool unchanged and hands back its rows untouched. The
+fields listed are the fields the tool itself accepts, not a translation, so
+anything the tool takes works even if it is not in the table. The line under
+the table says as much.
+
+The image and voice tools are wrapped rather than passed through, and their
+table is the complete list. A field that is not in it is rejected instead of
+forwarded.
 
 <Note>
   Fields that cost extra are called out in the tool's notes. Turning on a paid
@@ -56,12 +63,15 @@ translation, so anything the tool takes works even if it is not in the table.
 
 ## The price block
 
-The `price` block spells out three things:
+On a scrape or a voice call the first line is the rate, stated flat because it
+is exact: what one row, one page, one thousand bytes or one second costs you.
+Under it come the ceiling for a single call, always written as "up to", the
+fact that billing follows actual usage at the stated multiple of provider cost
+with a floor, and the note that the hold is sized from your specific request
+rather than from the ceiling.
 
-- the ceiling for a single call, always written as "up to",
-- that billing follows actual usage, at the stated multiple of provider cost,
-  with a floor,
-- that the hold is sized from your specific request, not from the ceiling.
+A flat-priced image tool prints a single line, `$0.18 per call, flat.`, because
+there is nothing else to say about it.
 
 An unknown slug exits `1`:
 

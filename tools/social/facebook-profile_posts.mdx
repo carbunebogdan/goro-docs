@@ -36,7 +36,7 @@ Billing follows actual usage, so a call that returns fewer results costs less. `
 curl -X POST https://api.usegoro.ai/v1/run \
   -H "Authorization: Bearer $GORO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"slug":"facebook.profile_posts","input":{"endpoint":"example","max_posts":3}}'
+  -d '{"slug":"facebook.profile_posts","input":{"endpoint":"profile_posts_by_url","max_posts":3}}'
 ```
 
 ## Response

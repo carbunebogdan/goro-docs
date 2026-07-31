@@ -89,15 +89,28 @@ That shapes how you get results back:
 - A synchronous `POST /v1/run` returns the rows inline in its `200` body. This
   is the normal path and the one to build on.
 - An asynchronous run returns `202`, and the `GET /v1/runs/{id}` poll that
-  finds the provider finished re-reads the rows from the provider and returns
-  them in that response.
-- `GET /v1/runs/{id}` re-reads the rows from the provider, so it returns them
-  whether the run is still finishing or already settled. Nothing is served from
-  our storage, because nothing is stored.
-- Providers age their datasets out. A re-read of an old run can come back
-  empty for that reason alone, which is a normal outcome and not an error.
+  finds the run finished returns the rows in that response.
+- `GET /v1/runs/{id}` works whether the run is still finishing or already
+  settled, because a finished run keeps its rows until you take them.
+- Once you have collected them, or once the run is a day old, they are gone.
+  Goro falls back to the provider's own copy at that point, which is best
+  effort: `output: null` on an old run is a normal outcome, not an error.
 
 Keep the rows from the response that hands them to you.
+
+### Media results expire too
+
+Some tools answer with a link instead of data, and the same clock applies. In
+one case it applies to the file as well.
+
+- Voice calls return a signed URL to audio that Goro hosts. It stops working 24
+  hours after the run, and the audio itself is deleted on that same clock.
+  There is no way to renew the link.
+- Image calls return URLs hosted by kie.ai, kept on kie.ai's own schedule.
+
+One rule covers both, and it is the one to build on: collect your result within
+24 hours, and download the file rather than storing the link. A URL you saved
+is not a copy of the thing it points at.
 
 ## Pagination
 

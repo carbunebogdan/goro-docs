@@ -56,7 +56,7 @@ tokens last 30 days and rotate on every use.
 | `get_run` | `tools:read` | To poll a `run_tool` call that came back with a `run_id` |
 | `wallet_balance` | `tools:read` | To check available funds, or after an `insufficient_funds` error |
 
-That is the complete list. There is no per-tool MCP surface: the 38 catalog
+That is the complete list. There is no per-tool MCP surface: the 44 catalog
 tools are reached through `run_tool` by slug, which is what keeps the tool list
 small enough for an agent to reason about.
 
@@ -97,7 +97,9 @@ Everything. The MCP tools are thin wrappers over the same code paths as
 Rows arrive in the `run_tool` response, or in the `get_run` poll that finds the
 run finished. Polling a finished run is the supported way to collect a slow
 result. Results are deleted once collected, and after 24 hours regardless, so
-have the agent write down anything it will need later.
+have the agent write down anything it will need later. When the result is a
+media link, from a voice or image tool, have it download the file too: those
+links expire on the same clock or on the model provider's.
 
 <Card title="Full API reference" icon="code" href="/api/overview">
   The endpoints behind the five tools.

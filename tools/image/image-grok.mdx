@@ -1,0 +1,46 @@
+---
+title: "Grok Imagine image"
+description: "Generate an original image from a text prompt using xAI Grok Imagine. Returns the URLs of the generated images. Those URLs are temporary: kie.ai deletes generat"
+---
+
+Generate an original image from a text prompt using xAI Grok Imagine. Returns the URLs of the generated images. Those URLs are temporary: kie.ai deletes generated media after 14 days, so download anything you need to keep.
+
+<Note>Use when you want a photographic or cinematic look, or several takes on one prompt in a single call. A good default when the brief is a mood rather than a precise layout. Text to image only.</Note>
+
+## Price
+
+**$0.06 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to draw. Describe subject, composition, style, lighting and mood; the more specific, the closer the result. |
+| `aspect_ratio` | `1:1`, `2:3`, `3:2`, `9:16`, `16:9` |  | Shape of the output image. Defaults to `"1:1"`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"image.grok","input":{"prompt":"example"}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-image-1.png",
+  "https://example.com/goro/generated-image-2.png"
+]
+```

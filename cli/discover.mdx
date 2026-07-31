@@ -13,12 +13,12 @@ ranks the tools against it.
 ```
 5 matches for "find recent tweets about ai agents"
 
-SLUG               NAME                    PRICE                  WHEN TO USE
-youtube.videos     YouTube videos          up to $6.00 per call   Use to find videos on a topic, pull a channel...
-twitter.followers  X followers and fol...  up to $25.00 per call  Use to map who follows an X account, to size ...
-twitter.search     Twitter search          up to $3.00 per call   Use when you need tweets about a topic, senti...
-amazon.product     Amazon product details  up to $2.00 per call   Use when you already have ASINs or Amazon pro...
-amazon.search      Amazon search results   up to $4.00 per call   Use to find products on Amazon by keyword, to...
+SLUG               NAME                    PRICE                 WHEN TO USE
+youtube.videos     YouTube videos          $0.0090 per result    Use to find videos on a topic, pull a channel...
+twitter.followers  X followers and fol...  $0.000450 per result  Use to map who follows an X account, to size ...
+twitter.search     Twitter search          $0.0012 per result    Use when you need tweets about a topic, senti...
+amazon.product     Amazon product details  $0.0045 per result    Use when you already have ASINs or Amazon pro...
+amazon.search      Amazon search results   $0.0003 per result    Use to find products on Amazon by keyword, to...
 
 Prices shown as a ceiling are billed on actual usage. You are charged
 what the call cost, which is usually well under the ceiling.
@@ -36,14 +36,20 @@ Plus the [global options](/cli/overview#global-options).
 
 ## Reading the price column
 
-The `PRICE` column is a **ceiling**, not what the call will cost. It is the
-maximum a single call to that tool can be charged, and it prints with the words
-"up to" so it can never be mistaken for a fixed price.
+The `PRICE` column is the **rate**: what one unit costs you, printed flat
+because it is exact. A row, a page, a thousand bytes of text, a second of
+audio, or the whole call on a flat-priced image tool.
+
+Two of those are not the total. On a scrape the total follows the rows the call
+really produced, and on a voice call it follows the size of what you sent. The
+words "up to" appear for a ceiling and for nothing else, so a number without
+them is never a maximum.
 
 <Note>
-  The gap is usually large. A `web.search` call whose ceiling is $1.00 typically
-  charges around a cent, because billing follows what the call actually
-  consumed. See [Pricing](/pricing).
+  A rate is not a total. A `web.search` call at $0.0075 per page charges around
+  a cent for a normal request, well under the $1.00 ceiling `inspect` shows.
+  An image call is the other extreme: one exact price, nothing to settle. See
+  [Pricing](/pricing).
 </Note>
 
 ## JSON output
@@ -68,7 +74,10 @@ goro discover -q "scrape a google maps place" --limit 2 -j
         "max_micro": 6000000,
         "max_usd": "$6.00",
         "billed_on_actual_usage": true,
-        "summary": "up to $6.00 per call (the actual hold scales with what you request), billed on actual usage (3x provider cost, minimum $0.0020)"
+        "per_unit_micro": 9000,
+        "per_unit_usd": "$0.0090",
+        "unit_label": "place",
+        "summary": "$0.0090 per place, billed on actual usage (3x provider cost, minimum $0.0020), up to $6.00 per call"
       },
       "sample_input": { "language": "en", "scrapeContacts": false }
     }
@@ -76,9 +85,11 @@ goro discover -q "scrape a google maps place" --limit 2 -j
 }
 ```
 
-`billed_on_actual_usage: true` is the machine-readable version of the same
-fact: `max_usd` is a maximum, so an agent can tell a ceiling from a fixed price
-without reading English.
+`per_unit_usd` and `unit_label` are the rate the table prints.
+`billed_on_actual_usage: true` says the total still depends on the call, so
+`max_usd` next to it is a maximum. On a flat-priced tool that flag is absent
+and `base_usd` is the whole price. An agent can tell the two apart without
+reading English.
 
 `sample_input` is fillable, so you can go straight to `run` without an
 `inspect` round trip.

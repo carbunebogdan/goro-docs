@@ -62,7 +62,10 @@ curl -X POST https://api.usegoro.ai/v1/inspect \
     "max_micro": 6000000,
     "max_usd": "$6.00",
     "billed_on_actual_usage": true,
-    "summary": "up to $6.00 per call (the actual hold scales with what you request), billed on actual usage (3x provider cost, minimum $0.0020)"
+    "per_unit_micro": 9000,
+    "per_unit_usd": "$0.0090",
+    "unit_label": "place",
+    "summary": "$0.0090 per place, billed on actual usage (3x provider cost, minimum $0.0020), up to $6.00 per call"
   }
 }
 ```
@@ -80,11 +83,16 @@ curl -X POST https://api.usegoro.ai/v1/inspect \
 | `price` | object | Same shape as in [`discover`](/api/discover#price) |
 
 <Note>
-  Goro forwards your input to the underlying tool unchanged and hands back its
-  rows untouched. `input_schema` is that tool's own schema, not a translation,
-  so any field the tool accepts works even when the schema does not name it.
-  The schema is what Goro validates against, so undeclared fields pass through
-  rather than being rejected.
+  On the passthrough tools, which is most of the catalog, Goro hands your input
+  to the underlying tool unchanged and hands back its rows untouched.
+  `input_schema` is that tool's own schema, not a translation, so any field the
+  tool accepts works even when the schema does not name it: undeclared fields
+  pass through rather than being rejected.
+
+  The image and voice tools are wrapped rather than passed through. Their
+  schemas set `additionalProperties: false`, and a field the schema does not
+  name comes back as a `validation_error`. Read the flag rather than assuming
+  either behaviour.
 </Note>
 
 `inspect` deliberately does not expose provider internals. There is no field

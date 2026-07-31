@@ -1,0 +1,45 @@
+---
+title: "Z-Image image"
+description: "Generate one original image from a text prompt using Z-Image, the cheapest and fastest model in the catalog. Returns the URL of the generated image. Those URLs "
+---
+
+Generate one original image from a text prompt using Z-Image, the cheapest and fastest model in the catalog. Returns the URL of the generated image. Those URLs are temporary: kie.ai deletes generated media after 14 days, so download anything you need to keep.
+
+<Note>Use when you need an image cheaply or at volume: drafts, thumbnails, placeholder art, or trying ten prompt variations before committing to an expensive model. Photorealistic results, short prompts only.</Note>
+
+## Price
+
+**$0.0120 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to draw. Describe subject, composition, style, lighting and mood; the more specific, the closer the result. |
+| `aspect_ratio` | `1:1`, `3:4`, `4:3`, `9:16`, `16:9` |  | Shape of the output image. Defaults to `"1:1"`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"image.z_image","input":{"prompt":"example"}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-image-1.png"
+]
+```

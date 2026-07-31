@@ -11,6 +11,15 @@
     ]
   },
   {
+    "group": "Image generation",
+    "pages": [
+      "tools/image/image-grok",
+      "tools/image/image-nano_banana",
+      "tools/image/image-seedream",
+      "tools/image/image-z_image"
+    ]
+  },
+  {
     "group": "Maps and places",
     "pages": [
       "tools/maps/maps-places",
@@ -60,6 +69,13 @@
       "tools/social/youtube-comments",
       "tools/social/youtube-transcript",
       "tools/social/youtube-videos"
+    ]
+  },
+  {
+    "group": "Voice and audio",
+    "pages": [
+      "tools/voice/voice-speak",
+      "tools/voice/voice-transcribe"
     ]
   }
 ]

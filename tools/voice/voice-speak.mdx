@@ -1,0 +1,57 @@
+---
+title: "Text to speech"
+description: "Turn text into natural speech and get back a link to the audio file. Choose the model, the output format and the speaking rate."
+---
+
+Turn text into natural speech and get back a link to the audio file. Choose the model, the output format and the speaking rate.
+
+<Note>Use when you need spoken audio from text: a voiceover line, a narration clip, an announcement, or an audio version of something you wrote. Up to 2,000 characters per call, about two minutes of speech. The audio is returned as a link that works for 24 hours, not as inline data, so download it if you need to keep it. Billed on the UTF-8 byte length of your text, so the exact price is known before the call.</Note>
+
+## Price
+
+**$0.0450 per 1,000 UTF-8 bytes of text.** An exact rate, not an estimate. The total is that rate times the UTF-8 bytes of text in your request, so you can work out what a call costs before you make it.
+
+No call costs less than $0.0020 or more than $0.36, the price of the largest request this endpoint takes, 8,000 UTF-8 bytes of text. `discover` and `inspect` quote your exact request before it runs.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `text` | `string` | yes | The text to speak. Billed on its UTF-8 byte length, so non-Latin scripts cost more per character than English does. |
+| `model` | `s2.1-pro`, `s2-pro`, `s1` |  | Which voice model to use. All three cost the same. Defaults to `"s2.1-pro"`. |
+| `format` | `mp3`, `opus` |  | Audio format of the file you get back. Uncompressed formats are not offered. Defaults to `"mp3"`. |
+| `prosody` | `object` |  | Delivery adjustments. |
+| `prosody.speed` | `number` |  | Speaking rate. 1 is normal, 0.5 is half speed, 2 is double. Defaults to `1`. |
+| `prosody.volume` | `number` |  | Loudness adjustment in dB. Defaults to `0`. |
+| `normalize` | `boolean` |  | Expand numbers, dates and abbreviations before speaking them. Leave on unless you have already written the text exactly as it should sound. Defaults to `true`. |
+| `mp3_bitrate` | `64`, `128`, `192` |  | MP3 quality in kbps. Ignored for opus. Defaults to `128`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"voice.speak","input":{"text":"Your order has shipped and should arrive on Thursday."}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "bytes": 73977,
+  "model": "s2.1-pro",
+  "format": "mp3",
+  "audio_url": "https://storage.example.com/voice-output/workspace/run.mp3?token=signed-and-expiring",
+  "expires_at": "2026-01-02T09:30:00.000Z",
+  "utf8_bytes": 50,
+  "content_type": "audio/mpeg"
+}
+```

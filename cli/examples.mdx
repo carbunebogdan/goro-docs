@@ -26,11 +26,13 @@ goro run -s web.search -i '{"queries":"best espresso machines 2026"}' -j \
 3  The Best Espresso Machine for Home in 2026 - Cafe Bueno  https://shopcafebueno.com/blogs/...
 ```
 
-Pull just the slugs and ceilings out of a discover:
+Pull just the slugs and prices out of a discover. Use `price.summary` rather
+than `max_usd`: a flat-priced tool has no ceiling, so `max_usd` on one of those
+is `null`.
 
 ```bash
 goro discover -q "linkedin company employees" -j \
-  | jq -r '.items[] | "\(.slug)\tup to \(.price.max_usd)"'
+  | jq -r '.items[] | "\(.slug)\t\(.price.summary)"'
 ```
 
 ## Branch on the exit code

@@ -3,9 +3,10 @@ title: "Tool catalog"
 description: "Everything your agent can reach through one connection."
 ---
 
-Goro exposes 38 tools across search, social, maps, commerce and people data.
-You do not need to memorise them: `discover` ranks the catalog against a
-plain-English question and hands back the best matches with their prices.
+Goro exposes 44 tools: search, social, maps, commerce and people data, plus
+image generation and voice. You do not need to memorise them: `discover` ranks
+the catalog against a plain-English question and hands back the best matches
+with their prices.
 
 ```bash
 curl -X POST https://api.usegoro.ai/v1/discover \
@@ -20,15 +21,39 @@ listed are the fields the tool actually accepts today.
 
 ## How to read a tool page
 
-**Input** lists the fields the underlying tool takes. Goro forwards your input
-unchanged, so anything the tool accepts works, even if it is not in the table.
-Fields that cost extra say so.
+**Input** lists the fields the tool takes. Most of the catalog is a
+passthrough: your input reaches the underlying tool unchanged, so anything it
+accepts works even when it is not in the table. The image and voice tools are
+the exception, and the note under their table says so. Fields that cost extra
+say so too.
 
-**Price** is per result, before our margin, and is what the tool charged us
-most recently. What you are quoted for a specific call appears in `discover`
-and `inspect` as a ceiling, and the final charge is usually lower.
+**Price** is what you pay, our margin already in it. Three shapes exist and
+they do not mean the same thing, so read the words next to the number.
+[Pricing](/pricing) covers all three.
 
-**Response** shows one row. The values are illustrative, not real records.
+**Response** shows one row, or the whole thing where it is short enough to
+print. The values are illustrative, not real records.
+
+## Three providers behind one balance
+
+The data tools run on Apify. Image generation runs on kie.ai. Voice runs on
+Fish Audio. You never hold an account or a key with any of them, and every call
+draws from the same balance.
+
+The difference you can see is in the price. Apify bills us for what a scrape
+actually consumed, so those tools quote a rate per row and settle on the rows
+they really produced. kie.ai charges a fixed amount per generation and Fish
+bills a published rate against a measurable input, so those tools quote an
+exact price you can work out before you call.
+
+## Collecting a result
+
+Rows are held until you collect them and never longer than 24 hours. Media is
+the case worth planning for: a voice call returns a link to audio that stops
+working on the same 24 hour clock, and an image call returns links hosted by
+kie.ai. Download what you want to keep, in the same task that made the call.
+[The API overview](/api/overview#run-results-are-held-only-until-you-collect-them)
+has the full contract.
 
 ## A note on personal data
 

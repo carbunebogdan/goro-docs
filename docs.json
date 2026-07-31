@@ -114,6 +114,22 @@
               "tools/ecommerce/amazon-sellers_eu",
               "tools/ecommerce/shopping-search"
             ]
+          },
+          {
+            "group": "Image generation",
+            "pages": [
+              "tools/image/image-grok",
+              "tools/image/image-nano_banana",
+              "tools/image/image-seedream",
+              "tools/image/image-z_image"
+            ]
+          },
+          {
+            "group": "Voice and audio",
+            "pages": [
+              "tools/voice/voice-speak",
+              "tools/voice/voice-transcribe"
+            ]
           }
         ]
       }

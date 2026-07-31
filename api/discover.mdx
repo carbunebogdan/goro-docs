@@ -43,7 +43,10 @@ curl -X POST https://api.usegoro.ai/v1/discover \
         "max_micro": 3000000,
         "max_usd": "$3.00",
         "billed_on_actual_usage": true,
-        "summary": "up to $3.00 per call (the actual hold scales with what you request), billed on actual usage (3x provider cost, minimum $0.0020)"
+        "per_unit_micro": 1200,
+        "per_unit_usd": "$0.0012",
+        "unit_label": "result",
+        "summary": "$0.0012 per result, billed on actual usage (3x provider cost, minimum $0.0020), up to $3.00 per call"
       },
       "sample_input": {
         "sort": "Latest",
@@ -87,26 +90,30 @@ return. Its fields depend on `type`.
 
 | Field | Type | Present on | Notes |
 | --- | --- | --- | --- |
-| `type` | string | all | `cost_plus`, `per_call` or `per_result` |
+| `type` | string | all | `cost_plus`, `metered`, `per_call` or `per_result` |
 | `summary` | string | all | One-line human description |
-| `markup` | number | `cost_plus` | Multiplier applied to what the provider charged |
-| `min_micro`, `min_usd` | integer, string | `cost_plus` | Floor for a call that delivered rows |
-| `max_micro`, `max_usd` | integer, string | `cost_plus` | Ceiling. You are never charged above it |
-| `billed_on_actual_usage` | boolean | `cost_plus` | Always `true`. Tells an agent this is a maximum, not a fixed price |
-| `base_micro`, `base_usd` | integer, string | `per_call`, `per_result` | Flat component |
+| `per_unit_micro`, `per_unit_usd` | integer, string | `cost_plus`, `metered` | The rate you pay per unit. Absent on a `cost_plus` tool with no published rate |
+| `unit_label` | string | `cost_plus`, `metered` | What one unit is: `profile`, `page`, `second of audio` |
+| `markup` | number | `cost_plus`, `metered` | Multiplier applied to what the provider charges |
+| `min_micro`, `min_usd` | integer, string | `cost_plus`, `metered` | Floor for a call that delivered something |
+| `max_micro`, `max_usd` | integer, string | `cost_plus`, `metered` | Ceiling. You are never charged above it |
+| `billed_on_actual_usage` | boolean | `cost_plus`, `metered` | Always `true`. The total depends on the call, so `max_usd` is a maximum and not a price |
+| `base_micro`, `base_usd` | integer, string | `per_call`, `per_result` | Flat component. On `per_call` it is the entire price |
 | `per_result_micro`, `per_result_usd` | integer, string | `per_result` | Charged per row |
 | `max_results_cap` | integer | `per_result` | Rows past this are neither delivered nor billed |
 
-Every tool in the catalog today is `cost_plus`: the call is billed at `markup`
-times what the provider actually charged, floored at `min_micro` and capped at
-`max_micro`. The other two shapes are part of the contract and worth handling
-if you parse `price` generically.
+Most of the catalog is `cost_plus`: billed at `markup` times what the provider
+actually charged, floored at `min_micro` and capped at `max_micro`. The image
+tools are `per_call`, one flat price with no ceiling to read. The voice tools
+are `metered`, an exact rate against the size of your request, with a ceiling
+on top. `per_result` is part of the contract but nothing in the catalog uses it
+today, so handle it if you parse `price` generically.
 
 <Note>
-  `max_usd` is the ceiling for the tool, and the hold Goro places is sized from
-  what you request, so it is usually well below that number. The rate you pay
-  per result is published on each tool's page in the
-  [catalog](/tools/overview).
+  On a `cost_plus` or `metered` tool, `max_usd` is a ceiling and the hold Goro
+  places is sized from what you request, so it usually sits well below that
+  number. On a `per_call` tool there is no ceiling: `base_usd` is what the call
+  costs. Every tool's page in the [catalog](/tools/overview) says which it is.
 </Note>
 
 ## Errors

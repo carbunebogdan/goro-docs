@@ -28,8 +28,9 @@ framework calls its instruction file.
 
 Prefer the hosted copy where you can. It is generated against the live API and
 covers the parts an agent gets wrong on its own: that result counts apply per
-target, that a quoted price is a ceiling rather than a flat rate, and that it
-should reach for your own tools before spending the balance.
+target, that a scrape's quoted price is a ceiling while an image or voice price
+is exact, that a media link expires, and that it should reach for your own
+tools before spending the balance.
 
 The short version below is the same contract, condensed.
 
@@ -77,17 +78,19 @@ Auth: send `Authorization: Bearer $GORO_API_KEY` on every request.
 
    GET /v1/runs/{run_id}
 
-   Safe to repeat. Goro does not store results, so each poll re-reads them
-   from the provider, and a poll that arrives after the run finished still
-   carries the rows. Providers age their datasets out eventually, so keep
-   anything you need long term.
+   Safe to repeat. A finished run holds its rows until you take them, so a
+   poll that arrives after it finished still carries them. They are deleted
+   once collected and 24 hours after the run either way, so keep anything you
+   need long term. If the result is a media link, download the file: those
+   expire too.
 
 ## Money rules
 
 - Check the balance with GET /v1/wallet/balance before a large job.
-- Prices are visible before you spend. Every price is a MAXIMUM for that
-  request (`billed_on_actual_usage: true`), never a fixed fee. The real charge
-  is what the provider actually charged plus margin, and it is usually lower.
+- Prices are visible before you spend, but they do not all mean the same
+  thing. Read `price.type`. Where `billed_on_actual_usage` is true the number
+  is a MAXIMUM for that request and the real charge is usually lower. Where it
+  is absent, on the flat-priced image tools, the number IS the price.
 - Amounts come as integer micro-USD (1 USD = 1,000,000) plus a human `_usd`
   string. Do maths on the integers.
 - Failed, stopped and timed-out calls are never charged. Retrying is safe.

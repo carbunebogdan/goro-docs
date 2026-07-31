@@ -1,6 +1,6 @@
 ---
 title: "Pricing"
-description: "What a call costs: a rate per result, a total that follows the results, and a ceiling you are never charged above."
+description: "What a call costs: an exact price where one exists, a rate and a ceiling where it cannot exist, and never a charge above the ceiling."
 ---
 
 ## Pay per call, no subscription
@@ -8,13 +8,51 @@ description: "What a call costs: a rate per result, a total that follows the res
 There is no plan and no seat. You top up a balance, and each call draws from
 it. Unused balance stays yours.
 
+## Three ways a tool prices
+
+Goro fronts three providers and they do not charge us the same way, so a
+quoted price does not mean the same thing everywhere. Which shape applies is
+written on the tool's page, and comes back as `price.type` from `discover` and
+`inspect`.
+
+| Shape | What you are quoted | Where it applies |
+| --- | --- | --- |
+| Per result | A rate per row plus a ceiling. The total follows the rows the call really produced | Search, social, maps, commerce, people data |
+| Flat | One exact price per call, the same every time | Image generation |
+| Metered | An exact rate against something measurable in your request, plus a ceiling | Voice |
+
+Only the first has a total that cannot be known before the call, and most of
+this page is about that case. The other two are arithmetic you can do in
+advance.
+
+### Flat
+
+An image generation call costs what it costs, whatever comes back: $0.0120 on
+Z-Image, $0.06 on Grok Imagine, $0.0825 on Seedream 5 Lite, $0.18 on Nano
+Banana 2. There is no ceiling to read and nothing to settle afterwards, and a
+call that fails is not charged at all.
+
+### Metered
+
+A voice call bills a published rate against a quantity you can measure
+yourself. Text to speech is $0.0450 per 1,000 UTF-8 bytes of the text you send,
+and no call can exceed $0.36. Speech to text is $0.0003 per second of audio,
+which works out at $1.08 an hour, and no call can exceed $1.08.
+
+The rate is exact, so the total is your input size times the rate. The ceiling
+is still a ceiling: it is the price of the largest request the endpoint takes,
+not a typical call.
+
 ## Three numbers, three jobs
+
+This is the per-result case, the one every search, social, maps, commerce and
+people tool uses.
 
 <Steps>
   <Step title="The rate">
-    Every tool publishes a rate per result, for example $0.0069 per profile or
-    $0.0075 per result page. That is what one row costs you, and it is on the
-    tool's page in the [catalog](/tools/overview).
+    Every one of those tools publishes a rate per result, for example $0.0069
+    per profile or $0.0075 per result page. That is what one row costs you, and
+    it is on the tool's page in the [catalog](/tools/overview).
   </Step>
   <Step title="The total">
     The total is the rate times the results the call actually produced. Ask for
@@ -55,7 +93,10 @@ If a call completes with no results and the tool positively reports it cost us
 nothing, it bills nothing. If it returned nothing but the tool still charged us
 to start, you pay our margin on that, which is fractions of a cent.
 
-You are never charged for rows you did not receive.
+You are never charged for rows you did not receive. A flat-priced or metered
+call is different in kind: it either produced the thing you asked for, in which
+case it costs its published price, or it failed, in which case it costs
+nothing.
 
 ## Holds are not charges
 
@@ -82,10 +123,15 @@ Saving a card does not enable this. You turn it on explicitly.
 
 ## Reading prices from the API
 
-`discover` and `inspect` return a `price` object per tool. It carries the
-markup applied to provider cost, the floor, and the ceiling for that tool, plus
-`billed_on_actual_usage: true` so an agent can tell a maximum from a fixed
-price without parsing English. Field by field, see the
+`discover` and `inspect` return a `price` object per tool. Read `type` first,
+because it decides which of the other fields are there: `cost_plus` and
+`metered` carry a ceiling in `max_usd`, `per_call` carries a fixed
+`base_usd` and no ceiling at all.
+
+`billed_on_actual_usage` is the field to branch on. Where it is `true`, the
+total depends on the call and `max_usd` is a maximum rather than a price. Where
+it is absent, the quoted number is the price. Either way an agent can tell them
+apart without parsing English. Field by field, see the
 [API reference](/api/discover).
 
 <Note>
