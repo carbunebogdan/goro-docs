@@ -1,0 +1,84 @@
+---
+title: "goro inspect"
+description: "Read a tool's real input schema, its price and a sample input you can send as-is."
+---
+
+```bash
+goro inspect -s web.search
+```
+
+```
+web.search  Web search
+
+  category  search
+  about     Run a Google web search and get back ranked organic results with title, url, and snippet.
+  use when  Use when you need current information from the web, to find pages about a topic, or to
+            answer questions that need fresh sources. Billed per result page, about 10 results each.
+  price     up to $1.00 for a single call, and never more than that.
+            Billed on actual usage, at 3x what the provider charged us, minimum $0.0020.
+            The hold scales with what you request. You are charged what the call cost.
+
+Input
+FIELD             TYPE     REQ  NOTES
+site              string        Limit to one site, e.g. example.com
+queries           string   yes  Search term(s), or Google Search URLs. Newline-separate for...
+countryCode       string        Two-letter country code, sets the Google domain (e.g. es fo...
+languageCode      string        Interface language (hl)
+mobileResults     boolean       default false
+searchLanguage    string        Restrict results to this language (lr)
+forceExactMatch   boolean       default false
+maxPagesPerQuery  integer       Result pages per query, roughly 10 results each. Billing is...
+Input is forwarded to the provider unchanged, so any field it accepts works.
+
+Run it
+  goro run -s web.search -i '{"queries":"<queries>","mobileResults":false,"forceExactMatch":false,"maxPagesPerQuery":1}'
+```
+
+## Options
+
+| Option | Meaning |
+| --- | --- |
+| `-s`, `--slug` | The tool slug, for example `web.search`. Required. |
+
+Plus the [global options](/cli/overview#global-options).
+
+## The input table is the real schema
+
+Goro forwards your input to the underlying tool unchanged and hands back its
+rows untouched. The fields listed are the fields the tool itself accepts, not a
+translation, so anything the tool takes works even if it is not in the table.
+
+<Note>
+  Fields that cost extra are called out in the tool's notes. Turning on a paid
+  extra raises what the call actually consumes, and therefore what you are
+  charged, but never above the ceiling.
+</Note>
+
+## The price block
+
+The `price` block spells out three things:
+
+- the ceiling for a single call, always written as "up to",
+- that billing follows actual usage, at the stated multiple of provider cost,
+  with a floor,
+- that the hold is sized from your specific request, not from the ceiling.
+
+An unknown slug exits `1`:
+
+```
+$ goro inspect -s nope.nope
+Error unknown endpoint: nope.nope
+```
+
+## Copy the run line
+
+The last block is a ready-to-run command with the sample input filled in.
+Replace the placeholders and go:
+
+```bash
+goro run -s web.search -i '{"queries":"best espresso machines 2026","maxPagesPerQuery":1}'
+```
+
+<Card title="Next: run" icon="play" href="/cli/run">
+  Call the tool and see what it actually cost.
+</Card>

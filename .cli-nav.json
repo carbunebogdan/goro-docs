@@ -1,0 +1,12 @@
+{
+  "group": "CLI reference",
+  "pages": [
+    "cli/overview",
+    "cli/discover",
+    "cli/inspect",
+    "cli/run",
+    "cli/runs",
+    "cli/keys",
+    "cli/examples"
+  ]
+}

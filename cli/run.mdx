@@ -1,0 +1,126 @@
+---
+title: "goro run"
+description: "Run a tool, with the input inline or from a file, synchronously or by polling."
+---
+
+```bash
+goro run -s web.search -i '{"queries":"best espresso machines 2026","maxPagesPerQuery":1}'
+```
+
+A fast call returns the rows straight away:
+
+```
+COMPLETED  web.search  d5f6185e-7faa-4fd3-b81b-0d02f4f9e918
+  cost      charged $0.0105 (1 result, $0.0105 each)
+  held      $0.0210, the rest was released
+  finished  2026-07-31T09:25:44.927+00:00
+
+Output (1 row)
+{
+  "searchQuery": { "term": "best espresso machines 2026", "page": 1, ... },
+  "organicResults": [ ... ]
+}
+```
+
+The `cost` line is what you were actually charged, and what that works out to
+per result. The `held` line is what was reserved before the call ran. The
+difference was released back to your balance.
+
+## Options
+
+| Option | Meaning |
+| --- | --- |
+| `-s`, `--slug` | The tool slug. Required. |
+| `-i`, `--input` | Input as a JSON object |
+| `-f`, `--file` | Read the input JSON from a file, or `-` for stdin |
+| `--wait` | Poll until the run finishes |
+| `--timeout <seconds>` | How long `--wait` waits. Default 300. |
+
+Plus the [global options](/cli/overview#global-options). `-i` and `-f` are
+mutually exclusive, and passing both is a usage error before anything is sent.
+
+## Input from a file or stdin
+
+Long or generated inputs are easier from a file:
+
+```bash
+goro run -s maps.places -f query.json
+```
+
+```bash
+jq -n '{searchStringsArray:["dentist in Cluj"],maxCrawledPlacesPerSearch:20}' \
+  | goro run -s maps.places -f -
+```
+
+## Slow calls
+
+Some calls take minutes. If a run does not finish inside the gateway's
+synchronous window, you get the run id back instead of the rows:
+
+```
+RUNNING  web.search  df7b5519-ccd3-448d-b5dc-01a4273e0a6a
+  held    $0.0210
+  price   up to $1.00 for a single call, and never more than that.
+          Billed on actual usage, at 3x what the provider charged us, minimum $0.0020.
+          The hold scales with what you request. You are charged what the call cost.
+
+  Poll it:  goro runs get -r df7b5519-ccd3-448d-b5dc-01a4273e0a6a
+  Or wait:  goro runs get -r df7b5519-ccd3-448d-b5dc-01a4273e0a6a --wait
+```
+
+Add `--wait` to block until it finishes instead. The CLI polls with exponential
+backoff up to `--timeout` seconds:
+
+```bash
+goro run -s web.search -i '{"queries":"aeropress vs french press"}' --wait
+```
+
+<Note>
+  Ctrl-C during `--wait` stops the waiting, not the run. The run keeps going and
+  you can pick it up later with `goro runs get -r <runId>`.
+</Note>
+
+If the timeout passes and the run is still going, the CLI exits `4` and tells
+you how to keep waiting. The run itself is unaffected.
+
+## Saving the output
+
+Human output prints the first three rows and then points you at the full
+result. To keep everything:
+
+```bash
+# machine-readable on stdout
+goro run -s web.search -i '{"queries":"ai agents"}' -j
+
+# rendered on stdout, full JSON in a file
+goro run -s web.search -i '{"queries":"ai agents"}' -o results.json
+```
+
+<Warning>
+  Results are not stored by the gateway. `runs get` returns the run's status and
+  cost forever, but its `output` is `null` once the response has been handed
+  back. If you need the rows, capture them with `-o` or `-j` at run time.
+</Warning>
+
+## When it does not work
+
+| Situation | Output | Exit |
+| --- | --- | --- |
+| Input is not valid JSON | `Input is not valid JSON: ...` | `1` |
+| Input fails the tool's schema | `/queries: must have required property 'queries'` | `1` |
+| Key missing or revoked | `Unknown or revoked API key` | `2` |
+| Balance too low | `Insufficient funds: this run requires a hold of $0.0210.` plus the top-up URL | `3` |
+| Budget cap would be breached | `budget_exceeded` with the period and cap | `3` |
+| Provider failed | `provider_error` with the run id | `4` |
+
+A 402 prints what it needs and where to fix it:
+
+```
+Error Insufficient funds: this run requires a hold of $0.0210. Top up to continue.
+  Needed:   $0.0210
+  Top up:   https://app.usegoro.ai/billing
+```
+
+<Card title="Next: runs" icon="list" href="/cli/runs">
+  Poll a run, and see what you have spent.
+</Card>

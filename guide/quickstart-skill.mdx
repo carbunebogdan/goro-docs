@@ -21,8 +21,17 @@ Put it where your agent keeps secrets, conventionally as `GORO_API_KEY`.
 
 ## 2. Give the agent the rules
 
-Save the following as a skill file, a system prompt, or whatever your framework
-calls its instruction file. It is the whole contract.
+The full instruction file is published at
+[usegoro.ai/SKILL.md](https://usegoro.ai/SKILL.md). Point your agent at that
+URL, or save a copy as a skill file, a system prompt, or whatever your
+framework calls its instruction file.
+
+Prefer the hosted copy where you can. It is generated against the live API and
+covers the parts an agent gets wrong on its own: that result counts apply per
+target, that a quoted price is a ceiling rather than a flat rate, and that it
+should reach for your own tools before spending the balance.
+
+The short version below is the same contract, condensed.
 
 ````markdown
 # Goro
@@ -68,9 +77,10 @@ Auth: send `Authorization: Bearer $GORO_API_KEY` on every request.
 
    GET /v1/runs/{run_id}
 
-   Safe to repeat. The poll that finds the run finished carries the rows in
-   `output`. Keep them: Goro does not store results, so a later poll of the
-   same run returns status and cost with `output: null`.
+   Safe to repeat. Goro does not store results, so each poll re-reads them
+   from the provider, and a poll that arrives after the run finished still
+   carries the rows. Providers age their datasets out eventually, so keep
+   anything you need long term.
 
 ## Money rules
 

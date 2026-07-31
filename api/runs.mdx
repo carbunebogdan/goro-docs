@@ -52,8 +52,8 @@ Items carry every field of the run record described under
 
 <Warning>
   `output` is always `null` in this list. Goro does not store run results, and
-  the list endpoint reads only what is stored. Use `GET /v1/runs/{id}` while a
-  run is still in flight to receive its rows.
+  listing every run's rows would mean a provider round trip per row. Use
+  `GET /v1/runs/{id}` to fetch the rows for a specific run.
 </Warning>
 
 The list is a spend and status record: what ran, when, how many rows it made
@@ -87,13 +87,13 @@ Stop polling once `status` is `COMPLETED`, `FAILED`, `STOPPED` or `TIMED_OUT`.
 The poll that finds the provider finished returns the rows in `output`. That
 is the response to keep.
 
-Goro never stores results, so a poll of a run that was already terminal before
-you asked returns its status, counts and cost with `output: null`. A re-read of
-the provider's own copy is best effort and providers age their datasets out, so
-`output: null` on an older run is a normal outcome rather than an error.
+Goro never stores results, so this endpoint re-reads them from the provider's
+own copy. That works whether the run is still finishing or already settled: a
+poll that arrives after the run completed still returns its rows.
 
-If you need results you can come back to, write them somewhere yourself when
-you first receive them.
+The re-read is best effort. Providers age their datasets out, so `output: null`
+on an older run is a normal outcome rather than an error, and it is the reason
+to write results somewhere yourself if you need them long term.
 
 ## Stop a run
 

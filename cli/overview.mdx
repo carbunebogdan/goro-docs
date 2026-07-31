@@ -1,0 +1,144 @@
+---
+title: "CLI"
+description: "Drive the gateway from a terminal or a script: discover a tool, inspect it, run it, and see what it cost."
+---
+
+The `goro` command line client wraps the same HTTP API your agent uses. It is
+useful for three things: setting up a key once, exploring the catalog by hand
+before you wire anything up, and scripting calls where a full agent would be
+overkill.
+
+Human-readable by default, raw JSON on demand, and an exit code that says what
+happened so a shell script can branch on it.
+
+## Install
+
+```bash
+npm install -g goro
+```
+
+<Note>
+  Prefer not to install globally? `npx goro discover -q "..."` works the same
+  way, and running from a clone is `cd cli && npm install && npm run build &&
+  npm link`.
+</Note>
+
+## First run
+
+```bash
+goro setup
+```
+
+It prompts for an API key, verifies it against the gateway, and stores it in
+`~/.goro/config.json` with permissions `0600`. The key is never echoed while
+you paste it and is never printed back afterwards.
+
+```
+Key verified and stored.
+  name       default  (active)
+  key        goro_live_mz...WNE0
+  workspace  b818a36d-bfb6-4111-a0aa-ce14cfbbb34e
+  gateway    https://api.usegoro.ai
+  config     /Users/you/.goro/config.json (mode 0600)
+Next: goro balance
+```
+
+## The commands
+
+| Command | What it does |
+| --- | --- |
+| `goro setup` | Store and verify your first API key |
+| `goro keys add` | Store an additional key |
+| `goro keys list` | Show stored keys, prefix and last 4 only |
+| `goro keys use <name>` | Switch the active key |
+| `goro discover -q "<query>"` | Find tools that can answer a question |
+| `goro inspect -s <slug>` | Show a tool's input, price and sample input |
+| `goro run -s <slug> -i '<json>'` | Run a tool |
+| `goro runs get -r <runId>` | Fetch one run |
+| `goro runs list` | List recent runs |
+| `goro balance` | Show the wallet balance |
+
+## Global options
+
+| Option | Meaning |
+| --- | --- |
+| `-j`, `--json` | Emit the raw JSON response instead of a rendered view |
+| `-o <file>` | Write the JSON response to a file |
+| `--api <url>` | Point at a different gateway, for example a local one |
+| `-h`, `--help` | Help for the CLI or for one command |
+| `-V`, `--version` | Print the CLI version |
+
+`-j` and `-o` are independent. `-o` always writes the same JSON `-j` prints, so
+you can keep a readable terminal and still capture the machine-readable result:
+
+```bash
+goro run -s web.search -i '{"queries":"cold brew ratio"}' -o results.json
+```
+
+## Exit codes
+
+Every command exits with one of five codes. Scripts branch on these rather than
+parsing output.
+
+| Code | Meaning | What to do |
+| --- | --- | --- |
+| `0` | Success | Continue |
+| `1` | Usage error | Fix the command, the slug or the input JSON |
+| `2` | Auth failure | The key is missing, wrong or revoked |
+| `3` | Insufficient funds | Top up, or raise the budget cap |
+| `4` | Upstream failure | The provider or gateway failed, retry later |
+
+```bash
+goro run -s web.search -i "$INPUT" -o out.json
+case $? in
+  0) echo "got results" ;;
+  3) echo "out of money, stopping" ; exit 1 ;;
+  4) echo "upstream flaked, retrying in 60s" ; sleep 60 ;;
+esac
+```
+
+A run that comes back `FAILED` or `TIMED_OUT` also exits `4`, even though the
+HTTP call itself succeeded. The run is what you asked about, so the run is what
+the exit code reports on.
+
+## How prices read
+
+The CLI shows two different kinds of number and never mixes them up.
+
+<Steps>
+  <Step title="A rate is exact">
+    A rate per result is what one row costs you. It prints flat, with no
+    hedging: `$0.0069 per profile`.
+  </Step>
+  <Step title="A ceiling is a maximum">
+    Before a call runs, the price attached to a tool is a ceiling for your
+    request, not a prediction. It always prints with the words "up to", for
+    example `up to $6.00 per call`. You are never charged above it, and the
+    final charge is usually well below it.
+  </Step>
+  <Step title="A charge is what happened">
+    After a call completes, the CLI shows what it actually cost and what that
+    works out to per result: `charged $0.0105 (1 result, $0.0105 each)`.
+  </Step>
+</Steps>
+
+See [Pricing](/pricing) for how the hold and the final charge are computed.
+
+## Environment
+
+| Variable | Effect |
+| --- | --- |
+| `GORO_API_KEY` | Use this key, overriding anything stored |
+| `GORO_API_URL` | Gateway base URL, below `--api` and above stored config |
+| `GORO_CONFIG_HOME` | Config directory, default `~/.goro` |
+
+`GORO_API_KEY` is the one to reach for in CI: nothing is written to disk, and
+no `setup` step is needed.
+
+```bash
+GORO_API_KEY=$GORO_KEY goro run -s web.search -i '{"queries":"ai agents"}' -j
+```
+
+<Card title="Every command, with examples" icon="terminal" href="/cli/examples">
+  Piping to jq, scripting retries, and running a batch of inputs.
+</Card>

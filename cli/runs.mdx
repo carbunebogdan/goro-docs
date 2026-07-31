@@ -1,0 +1,124 @@
+---
+title: "goro runs"
+description: "Poll a single run to completion, or list what you have run recently and what it cost."
+---
+
+## runs get
+
+```bash
+goro runs get -r d5f6185e-7faa-4fd3-b81b-0d02f4f9e918
+```
+
+```
+COMPLETED  web.search  d5f6185e-7faa-4fd3-b81b-0d02f4f9e918
+  cost      charged $0.0105 (1 result, $0.0105 each)
+  held      $0.0210, the rest was released
+  finished  2026-07-31T09:25:44.927+00:00
+```
+
+| Option | Meaning |
+| --- | --- |
+| `-r`, `--run` | The run id. Required. |
+| `--wait` | Poll until the run reaches a terminal state |
+| `--timeout <seconds>` | How long `--wait` waits. Default 300. |
+
+With `--wait`, the CLI polls with exponential backoff (1s, then 1.5s, 2.25s and
+so on, capped at 8s) until the run is `COMPLETED`, `FAILED`, `STOPPED` or
+`TIMED_OUT`.
+
+```bash
+goro runs get -r df7b5519-ccd3-448d-b5dc-01a4273e0a6a --wait --timeout 600
+```
+
+The exit code follows the run, not the HTTP call: `COMPLETED` exits `0`,
+anything else exits `4`.
+
+<Note>
+  Polling is free and idempotent. It is also what advances an in-flight run, so
+  polling a slow run is the normal thing to do, not a workaround.
+</Note>
+
+### JSON shape
+
+```bash
+goro runs get -r d5f6185e-7faa-4fd3-b81b-0d02f4f9e918 -j
+```
+
+```json
+{
+  "run_id": "d5f6185e-7faa-4fd3-b81b-0d02f4f9e918",
+  "endpoint": "web.search",
+  "status": "COMPLETED",
+  "output": null,
+  "output_count": 1,
+  "quoted_cost_micro": 21000,
+  "quoted_cost_usd": "$0.0210",
+  "cost_micro": 10500,
+  "cost_usd": "$0.0105",
+  "error": null,
+  "created_at": "2026-07-31T09:25:04.257271+00:00",
+  "started_at": "2026-07-31T09:25:06.309+00:00",
+  "finished_at": "2026-07-31T09:25:44.927+00:00"
+}
+```
+
+`quoted_cost_*` is the hold that was taken up front. `cost_*` is what you were
+actually charged. Every amount comes as both an integer in micro-USD (one
+millionth of a dollar, so there is no floating point drift) and a formatted
+string.
+
+`output` is `null` here because results are not stored. Capture them at run
+time with `goro run ... -o file.json`.
+
+## runs list
+
+```bash
+goro runs list
+```
+
+```
+3 runs
+
+RUN ID                                ENDPOINT    STATUS     ROWS  COST     CREATED
+d7bdf7f4-00a2-4aa1-a637-7519c3c353e9  web.search  COMPLETED  1     $0.0105  2026-07-31 09:27:48
+df7b5519-ccd3-448d-b5dc-01a4273e0a6a  web.search  COMPLETED  1     $0.0105  2026-07-31 09:27:09
+d5f6185e-7faa-4fd3-b81b-0d02f4f9e918  web.search  COMPLETED  1     $0.0105  2026-07-31 09:25:04
+```
+
+| Option | Meaning |
+| --- | --- |
+| `-n`, `--limit` | How many runs to return. Default 20. |
+| `--cursor <cursor>` | Continue from a previous page's `next_cursor` |
+
+Newest first. When there is another page, the CLI prints the exact command to
+fetch it.
+
+## balance
+
+```bash
+goro balance
+```
+
+```
+Wallet
+  available  $1.9685
+  cash       $1.9685
+```
+
+`available` is what you can spend right now: cash plus any promotional credit,
+minus anything currently held by a running call. Promotional credit is listed
+separately when you have some, because it is spent before cash.
+
+An empty wallet says so, and points at the top-up page:
+
+```
+Wallet
+  available  $0.00
+  cash       $0.00
+
+Empty. Top up at https://app.usegoro.ai/billing
+```
+
+<Card title="Recipes" icon="terminal" href="/cli/examples">
+  Piping to jq, retry loops, and batch runs.
+</Card>

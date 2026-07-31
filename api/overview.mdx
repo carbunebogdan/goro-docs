@@ -90,9 +90,9 @@ That shapes how you get results back:
 - An asynchronous run returns `202`, and the `GET /v1/runs/{id}` poll that
   finds the provider finished re-reads the rows from the provider and returns
   them in that response.
-- Once a run is already terminal in Goro's records, a later `GET
-  /v1/runs/{id}` returns its status, counts and cost with `output: null`. The
-  rows are not stored, so there is nothing to return.
+- `GET /v1/runs/{id}` re-reads the rows from the provider, so it returns them
+  whether the run is still finishing or already settled. Nothing is served from
+  our storage, because nothing is stored.
 - Providers age their datasets out. A re-read of an old run can come back
   empty for that reason alone, which is a normal outcome and not an error.
 

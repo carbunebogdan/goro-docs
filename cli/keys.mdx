@@ -1,0 +1,126 @@
+---
+title: "goro keys"
+description: "Store, list and switch API keys, without a secret ever reaching your screen or your shell history."
+---
+
+## setup
+
+```bash
+goro setup
+```
+
+Prompts for a key, verifies it against the gateway, and stores it. Verification
+happens before storage, so a mistyped key fails here rather than on your first
+real call.
+
+```
+Key verified and stored.
+  name       default  (active)
+  key        goro_live_mz...WNE0
+  workspace  b818a36d-bfb6-4111-a0aa-ce14cfbbb34e
+  gateway    https://api.usegoro.ai
+  config     /Users/you/.goro/config.json (mode 0600)
+Next: goro balance
+```
+
+| Option | Meaning |
+| --- | --- |
+| `--name <name>` | Store under a name of your choosing. Default `default`. |
+| `--key <key>` | Provide the key non-interactively |
+
+<Warning>
+  `--key` puts a live secret in your shell history. Prefer the prompt, or pipe
+  it in: `echo "$GORO_KEY" | goro setup`. For CI, set `GORO_API_KEY` and skip
+  `setup` entirely.
+</Warning>
+
+## keys add
+
+```bash
+goro keys add --name work
+```
+
+Same flow, but it does not switch the active key unless it is the first one
+stored. Useful when you have a personal workspace and a client workspace.
+
+## keys list
+
+```bash
+goro keys list
+```
+
+```
+Stored keys (/Users/you/.goro/config.json)
+   NAME     KEY                  WORKSPACE                             ADDED
+*  default  goro_live_mz...WNE0  b818a36d-bfb6-4111-a0aa-ce14cfbbb34e  2026-07-31
+   work     goro_live_Zz...0fD9  66666666-7777-8888-9999-000000000000  2026-07-31
+```
+
+`*` marks the active key. Keys always print as a prefix plus the last four
+characters. The full secret is never printed by any command, in either human or
+JSON output.
+
+If `GORO_API_KEY` is set in your shell, `keys list` says so, because that key
+wins over everything stored:
+
+```
+GORO_API_KEY is set and overrides all of these: goro_live_Zz...0fD9
+```
+
+## keys use
+
+```bash
+goro keys use work
+```
+
+```
+Active key: work goro_live_Zz...0fD9
+```
+
+## Where keys live
+
+`~/.goro/config.json`, mode `0600`, inside a directory with mode `0700`. The
+CLI re-applies those permissions on every write, so a file that something else
+loosened is tightened again rather than left open.
+
+If it finds the file world-readable, `keys list` warns:
+
+```
+Warning: /Users/you/.goro/config.json is mode 0644, expected 0600.
+Run `chmod 600 /Users/you/.goro/config.json`.
+```
+
+Point the whole config directory somewhere else with `GORO_CONFIG_HOME`, which
+is how you keep separate profiles:
+
+```bash
+GORO_CONFIG_HOME=~/.goro-client-a goro setup
+```
+
+## Precedence
+
+When more than one key is available, the first match wins:
+
+<Steps>
+  <Step title="GORO_API_KEY">
+    An environment variable beats everything stored. Nothing is written to disk.
+  </Step>
+  <Step title="The active stored key">
+    Whatever `keys use` last selected.
+  </Step>
+</Steps>
+
+The gateway base URL resolves the same way: `--api`, then `GORO_API_URL`, then
+the `api_url` saved in your config, then the default.
+
+## Losing a key
+
+Revoke it in the dashboard. A revoked key fails closed on the next call:
+
+```
+$ goro balance
+Error Unknown or revoked API key
+```
+
+Exit code `2`, so a script can tell an auth problem from an empty wallet
+(`3`) or a flaky provider (`4`).

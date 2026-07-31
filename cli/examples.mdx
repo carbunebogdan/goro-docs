@@ -1,0 +1,155 @@
+---
+title: "Examples"
+description: "Recipes: piping to jq, scripting on exit codes, batching inputs, and running against a local gateway."
+---
+
+## From question to rows in three commands
+
+```bash
+goro discover -q "reviews for a restaurant on google maps"
+goro inspect -s maps.reviews
+goro run -s maps.reviews -i '{"startUrls":[{"url":"https://maps.app.goo.gl/xyz"}],"maxReviews":20}' -o reviews.json
+```
+
+## Pipe straight into jq
+
+`-j` prints the raw response, so the whole result is one JSON document.
+
+```bash
+goro run -s web.search -i '{"queries":"best espresso machines 2026"}' -j \
+  | jq -r '.output[0].organicResults[] | "\(.position)  \(.title)  \(.url)"'
+```
+
+```
+1  Best Espresso Machines for Coffee Nerds & Beginners ...  https://www.bonappetit.com/story/best-espresso-machines
+2  Best Espresso Machine 2026?  https://www.reddit.com/r/espresso/comments/...
+3  The Best Espresso Machine for Home in 2026 - Cafe Bueno  https://shopcafebueno.com/blogs/...
+```
+
+Pull just the slugs and ceilings out of a discover:
+
+```bash
+goro discover -q "linkedin company employees" -j \
+  | jq -r '.items[] | "\(.slug)\tup to \(.price.max_usd)"'
+```
+
+## Branch on the exit code
+
+```bash
+#!/bin/bash
+set -u
+
+goro run -s web.search -i '{"queries":"ai agent frameworks"}' -o out.json
+case $? in
+  0) jq '.output_count' out.json ;;
+  1) echo "bad request, not retrying" ; exit 1 ;;
+  2) echo "key rejected, check GORO_API_KEY" ; exit 1 ;;
+  3) echo "wallet empty, topping up needed" ; exit 1 ;;
+  4) echo "upstream failed, retrying once in 60s"
+     sleep 60
+     goro run -s web.search -i '{"queries":"ai agent frameworks"}' -o out.json ;;
+esac
+```
+
+Exit `3` is the one worth handling separately in a long-running loop: it means
+the work is fine and the money ran out, so retrying immediately just burns
+requests.
+
+## Stop before you run out
+
+```bash
+#!/bin/bash
+# Halt the batch when the balance drops under a dollar.
+floor=1000000  # micro-USD
+
+while read -r query; do
+  available=$(goro balance -j | jq '.available_micro')
+  if [ "$available" -lt "$floor" ]; then
+    echo "balance $available below floor, stopping"
+    break
+  fi
+  goro run -s web.search -i "$(jq -n --arg q "$query" '{queries:$q}')" \
+    -o "results/$(echo "$query" | tr ' /' '__').json"
+done < queries.txt
+```
+
+## Batch a file of inputs
+
+```bash
+# inputs.jsonl, one JSON object per line
+while read -r line; do
+  echo "$line" | goro run -s instagram.profile -f - -j >> out.jsonl
+done < inputs.jsonl
+```
+
+`-f -` reads the input from stdin, so anything that can generate JSON can drive
+the CLI.
+
+## Long-running calls
+
+```bash
+# Kick it off and come back later.
+run_id=$(goro run -s maps.places -f big-query.json -j | jq -r '.run_id')
+
+# ... other work ...
+
+goro runs get -r "$run_id" --wait --timeout 900 -o places.json
+```
+
+## Two workspaces on one machine
+
+```bash
+GORO_CONFIG_HOME=~/.goro-client-a goro setup
+GORO_CONFIG_HOME=~/.goro-client-b goro setup
+
+alias goro-a='GORO_CONFIG_HOME=~/.goro-client-a goro'
+alias goro-b='GORO_CONFIG_HOME=~/.goro-client-b goro'
+
+goro-a balance
+goro-b balance
+```
+
+Or keep one config and switch:
+
+```bash
+goro keys use client-a
+```
+
+## CI
+
+No `setup`, no config file, nothing written to disk:
+
+```yaml
+- name: Fetch competitor prices
+  env:
+    GORO_API_KEY: ${{ secrets.GORO_API_KEY }}
+  run: |
+    npx goro run -s amazon.search \
+      -i '{"searchTerms":["espresso machine"],"maxItems":20}' \
+      -o prices.json
+```
+
+## Against a local gateway
+
+```bash
+goro discover -q "web search" --api http://localhost:3030
+```
+
+Pass `--api` to `setup` and it is remembered in your config, so you only need
+it once per profile.
+
+## What a call actually cost
+
+```bash
+goro runs list -n 5 -j | jq -r '.items[] | "\(.endpoint)\t\(.cost_usd)\t\(.output_count) rows"'
+```
+
+```
+web.search	$0.0105	1 rows
+web.search	$0.0105	1 rows
+maps.places	$0.1420	20 rows
+```
+
+The quoted ceiling for those `web.search` calls was $1.00. What they cost was
+about a cent, because billing follows what the call actually consumed. See
+[Pricing](/pricing).
