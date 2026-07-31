@@ -1,0 +1,70 @@
+---
+title: "Facebook group posts"
+description: "Posts from public Facebook groups with post text, author, permalink, timestamp, attachments and reaction, comment and share counts."
+---
+
+Posts from public Facebook groups with post text, author, permalink, timestamp, attachments and reaction, comment and share counts.
+
+<Note>Use to mine a public Facebook group for demand signals, recurring questions, buy and sell listings or community sentiment. Only public groups can be scraped.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0040 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `startUrls` | `array` | yes | Public Facebook group URLs, one object per group. Private groups cannot be scraped. |
+| `viewOption` | `CHRONOLOGICAL`, `RECENT_ACTIVITY`, `TOP_POSTS`, `CHRONOLOGICAL_LISTINGS` |  | Sort order. New posts, newest activity, most relevant, or BuySell listings. resultsLimit applies to new posts only. Defaults to `"CHRONOLOGICAL"`. |
+| `resultsLimit` | `integer` |  | Maximum posts to return per group. Leave unset to return as many as possible, billed per post. |
+| `searchGroupYear` | `string` |  | Restrict a keyword search to one year. Requires searchGroupKeyword. |
+| `onlyPostsNewerThan` | `string` |  | COSTS EXTRA. YYYY-MM-DD, full ISO, or relative like "2 months". Apify bills an additional filter-applied event of $0.001 per post scraped with a date filter. |
+| `searchGroupKeyword` | `string` |  | Search inside the group. Without a login this only works reliably with a one or two letter query. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"facebook.group_posts","input":{"startUrls":["example"],"resultsLimit":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "UzpfSTEwMDA2NDM5NjI4NTkyMTpWSzoyNTY3OTY0MDczNjk4MDAx",
+  "url": "https://facebook.com/example-account/874728723021553/permalink/2567964073698001/",
+  "text": "Warm welcome to everyone who joined this week.",
+  "time": "2026-07-30T12:42:30.000Z",
+  "user": {
+    "id": "100064396285921",
+    "name": "Priya Raman",
+    "profilePic": "https://example.com/media/sample.jpg"
+  },
+  "inputUrl": "https://facebook.com/example-account/874728723021553",
+  "legacyId": "2567964073698001",
+  "groupTitle": "Maths Formulas",
+  "likesCount": 3,
+  "attachments": [
+    {
+      "thumbnail": "https://example.com/media/sample.jpg"
+    }
+  ],
+  "facebookUrl": "https://facebook.com/example-account/874728723021553",
+  "sharesCount": 0,
+  "commentsCount": 0,
+  "paidPartnership": false,
+  "reactionLoveCount": 3,
+  "topReactionsCount": 1
+}
+```

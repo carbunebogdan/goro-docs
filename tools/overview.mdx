@@ -1,0 +1,40 @@
+---
+title: "Tool catalog"
+description: "Everything your agent can reach through one connection."
+---
+
+Goro exposes 38 tools across search, social, maps, commerce and people data.
+You do not need to memorise them: `discover` ranks the catalog against a
+plain-English question and hands back the best matches with their prices.
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/discover \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "recent posts from a tiktok creator"}'
+```
+
+The pages in this section document each tool's input and the shape of what it
+returns. Every one of them is generated from the live catalog, so the fields
+listed are the fields the tool actually accepts today.
+
+## How to read a tool page
+
+**Input** lists the fields the underlying tool takes. Goro forwards your input
+unchanged, so anything the tool accepts works, even if it is not in the table.
+Fields that cost extra say so.
+
+**Price** is per result, before our margin, and is what the tool charged us
+most recently. What you are quoted for a specific call appears in `discover`
+and `inspect` as a ceiling, and the final charge is usually lower.
+
+**Response** shows one row. The values are illustrative, not real records.
+
+## A note on personal data
+
+Several tools in this catalog return information about identifiable people.
+You are responsible for having a lawful basis to collect it, and for complying
+with the terms of the platform the data came from.
+
+Goro does not store results. We record what a call cost and how many rows it
+returned, never the rows.

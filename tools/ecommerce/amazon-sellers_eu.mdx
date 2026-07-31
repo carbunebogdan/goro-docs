@@ -1,0 +1,68 @@
+---
+title: "Amazon seller leads"
+description: "Rows from a prebuilt database of Amazon marketplace sellers: business name and type, company registration and VAT number, published contact details, business ad"
+---
+
+Rows from a prebuilt database of Amazon marketplace sellers: business name and type, company registration and VAT number, published contact details, business address and country, seller ratings and review counts over lifetime, one year and three month windows, plus one example ASIN and its category.
+
+<Note>Use to build a B2B prospect list of Amazon sellers filtered by product category, country of residence and discovery date. Every returned row is billed and this is the most expensive endpoint in the catalog per row, so set max_results to what you will actually use and page with offset. The rows are business contact data, so confirm your use is lawful under GDPR and local marketing rules before you contact anyone.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0089 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `offset` | `integer` |  | Rows to skip, for paging past leads you already pulled. Defaults to `1`. |
+| `date_added` | `string` |  | Only leads discovered after this date, YYYY-MM-DD. |
+| `max_results` | `integer` |  | COSTS EXTRA, linearly. Rows to return. Every row is billed. Defaults to `100`. |
+| `seller_country` | `US`, `CN`, `DE`, `AT`, `AU`, `BE`, `BG`, `CA`, `CH`, `CY`, `CZ`, `DK`, `EE`, `ES`, `FI`, `FR`, `GB`, `GR`, `HK`, `HU`, `IE`, `IN`, `IT`, `JP`, `KR`, `LT`, `LV`, `NL`, `PL`, `PT`, `RO`, `SE`, `SI`, `SK`, `TR`, `TW` |  | Seller country of residence. |
+| `amazon_category` | `Automotive`, `Baby Products`, `Beauty`, `Books`, `Clothing, Shoes & Jewelry`, `Business, Industry & Science`, `Computers`, `DIY & Tools`, `Electronics`, `Fashion`, `Garden`, `Grocery`, `Handmade Products`, `Health & Personal Care`, `Health & Household`, `Home & Kitchen`, `Industrial & Scientific`, `Large Appliances`, `Lighting`, `Musical Instruments & DJ`, `Office Products`, `PC & Video Games`, `Pet Supplies`, `Sports & Outdoors`, `Stationery & Office Supplies`, `Tools`, `Toys` |  | Amazon category the seller sells in. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"amazon.sellers_eu","input":{"max_results":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "asin": "B0CH9VFS1J",
+  "email": "contact@example.com",
+  "category": "Fashion",
+  "seller_id": "sample-id-000",
+  "vat_number": null,
+  "about_seller": "",
+  "country_code": "CN",
+  "phone_number": "+1 555 0100",
+  "product_name": "Pearl Cross Baroque Brooches for Women",
+  "amazon_market": "amazon.de",
+  "business_name": "Example Trading Co Ltd",
+  "business_type": "Privately-owned business",
+  "rating_1_year": 4.2,
+  "discovery_date": "2026-05-18",
+  "reviews_1_year": 6,
+  "rating_3_months": 4.5,
+  "rating_lifetime": 4.5,
+  "seller_page_url": "https://www.amazon.de/sp?ie=UTF8&seller=A100L9JLD7KMS7",
+  "business_address": "12 Example Road, Example City, 350000",
+  "reviews_3_months": 2,
+  "reviews_lifetime": 14,
+  "registration_number": "91350103MAC6KXLD3N",
+  "multiple_sellers_for_asin": false
+}
+```

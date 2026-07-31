@@ -1,0 +1,57 @@
+---
+title: "Instagram URL"
+description: "Scrape any public Instagram URL: a profile, post, or reel. Returns posts, comments, reels, or profile details depending on what you ask for."
+---
+
+Scrape any public Instagram URL: a profile, post, or reel. Returns posts, comments, reels, or profile details depending on what you ask for.
+
+<Note>Use when you already have an Instagram URL and want its contents, especially post comments, which the other Instagram tools do not return.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0020 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `search` | `string` |  | Search Instagram instead of using directUrls. Billed at $0.005 per result rather than $0.002. |
+| `directUrls` | `array` |  | Instagram profile, post, or reel URL. One per call: resultsLimit applies per URL, so batching several would bill past this request's hold. |
+| `searchType` | `user`, `hashtag`, `place` |  |  Defaults to `"hashtag"`. |
+| `resultsType` | `posts`, `comments`, `details`, `mentions`, `reels`, `stories` |  | Comments only work on post URLs Defaults to `"posts"`. |
+| `searchLimit` | `integer` |  |  Defaults to `1`. |
+| `resultsLimit` | `integer` |  |  Defaults to `20`. |
+| `addParentData` | `boolean` |  |  Defaults to `false`. |
+| `onlyPostsNewerThan` | `string` |  |  |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"instagram.url","input":{"resultsLimit":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "18031234567890123",
+  "url": "https://instagram.com/example-account/DLNsnpUTdVS/",
+  "type": "Image",
+  "likes": 184203,
+  "caption": "Photograph by @thomaspeschak",
+  "comments": 1204,
+  "timestamp": "2026-07-01T12:00:00.000Z",
+  "display_url": "https://example.com/media/sample.jpg",
+  "owner_username": "natgeo"
+}
+```

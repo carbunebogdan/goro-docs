@@ -1,0 +1,56 @@
+---
+title: "Twitter search"
+description: "Search recent tweets on X (Twitter) by keyword, hashtag, or advanced query and get back tweet text, author, and engagement metrics. Billed on actual usage: the "
+---
+
+Search recent tweets on X (Twitter) by keyword, hashtag, or advanced query and get back tweet text, author, and engagement metrics. Billed on actual usage: the hold scales with how many tweets you request, up to $3.00 per call.
+
+<Note>Use when you need tweets about a topic, sentiment or chatter on X, mentions of a brand or person, or what people are saying right now.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0004 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `end` | `string` |  | Only tweets before this date, YYYY-MM-DD |
+| `sort` | `Top`, `Latest` |  | Rank by relevance (Top) or recency (Latest) Defaults to `"Latest"`. |
+| `start` | `string` |  | Only tweets after this date, YYYY-MM-DD |
+| `maxItems` | `integer` |  | Maximum tweets to return across all search terms Defaults to `20`. |
+| `searchTerms` | `array` | yes | Search queries. Supports X advanced search syntax. |
+| `tweetLanguage` | `string` |  | Two-letter language code to restrict results |
+| `onlyVerifiedUsers` | `boolean` |  |  |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"twitter.search","input":{"searchTerms":["example"],"maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "1811230000000000000",
+  "url": "https://x.com/example-account/status/1811230000000000000",
+  "text": "AI agents are eating the software stack",
+  "likes": 42,
+  "replies": 3,
+  "retweets": 7,
+  "created_at": "2026-07-01T12:00:00Z",
+  "author_name": "Builder",
+  "author_handle": "builder"
+}
+```

@@ -1,0 +1,57 @@
+---
+title: "Google News search"
+description: "News articles from Google News for one or more keywords, sections or topic URLs, with headline, publisher, publish time, link and image, in any of 80 region and"
+---
+
+News articles from Google News for one or more keywords, sections or topic URLs, with headline, publisher, publish time, link and image, in any of 80 region and language pairs.
+
+<Note>Use for current-events lookups, brand and competitor monitoring, and building a dated news timeline. Narrow timeframe rather than raising maxArticles when you only want fresh coverage. maxArticles applies to EACH keyword or topic.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0040 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `topics` | `array` |  | Predefined Google News sections, pulled instead of or alongside keywords |
+| `keywords` | `array` |  | Search keywords. Google News operators work: - excludes, site: restricts to a publisher, OR combines, quotes force an exact phrase. maxArticles applies to EACH keyword |
+| `timeframe` | `1h`, `1d`, `7d`, `30d`, `1y`, `all` |  | Time window for keyword searches. Topic pages return their own curated results Defaults to `"1d"`. |
+| `topicUrls` | `array` |  | Custom Google News topic or section URLs for niche topics |
+| `decodeUrls` | `boolean` |  | Resolve Google News redirect links to the publisher's real URL. Much slower Defaults to `false`. |
+| `maxArticles` | `integer` |  | Maximum articles per keyword or topic. Billed per article Defaults to `20`. |
+| `extractImages` | `boolean` |  |  Defaults to `true`. |
+| `region_language` | `string` |  | Region and language pair, e.g. US:en, GB:en, DE:de, FR:fr, ES:es, IT:it, RO:ro, JP:ja Defaults to `"US:en"`. |
+| `extractDescriptions` | `boolean` |  | Fetch each article page for its meta description. Much slower Defaults to `false`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"news.search","input":{"maxArticles":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "link": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE...",
+  "image": "https://lh3.googleusercontent.com/proxy/example",
+  "title": "Example headline about artificial intelligence",
+  "source": "Reuters",
+  "keyword": "artificial intelligence",
+  "description": "",
+  "publishedAt": "2026-07-30T09:12:00.000Z",
+  "region_language": "US:en"
+}
+```

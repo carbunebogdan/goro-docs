@@ -1,0 +1,110 @@
+---
+title: "LinkedIn job search"
+description: "Searches LinkedIn job postings by title and location, with filters for company, workplace type, employment type, seniority, salary band, and recency. Returns th"
+---
+
+Searches LinkedIn job postings by title and location, with filters for company, workplace type, employment type, seniority, salary band, and recency. Returns the full posting, the hiring company, applicant counts, and the apply link.
+
+<Note>Use to track hiring signals: which companies are staffing up a function, what a role pays in a market, or which accounts just opened a req you can sell into. Also useful as an intent signal before outreach.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0010 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `page` | `integer` |  | Search page to start from. Each page holds 25 jobs. |
+| `geoIds` | `array` |  | LinkedIn geo ID filter, for example "103644278". More precise than locations. |
+| `salary` | `array` |  | Minimum salary band filter. |
+| `sortBy` | `date`, `relevance` |  | Result ordering. Defaults to `"date"`. |
+| `company` | `array` |  | Filter by employer. Full LinkedIn company URLs or company names. |
+| `maxItems` | `integer` |  | Maximum jobs per title and location pair. This is the field the price quote is sized from. Defaults to `10`. |
+| `easyApply` | `boolean` |  | Only postings with LinkedIn Easy Apply. |
+| `jobTitles` | `array` | yes | Search queries, as typed into LinkedIn job search. Boolean operators are supported. maxItems applies to EACH title and location pair, so two titles across two locations can cost four times the quote. |
+| `locations` | `array` |  | LinkedIn location filter, for example "New York". Prefer the full country or city name. |
+| `industryIds` | `array` |  | LinkedIn industry ID filter, for example "4" for Software Development. |
+| `postedLimit` | `1h`, `24h`, `week`, `month` |  | Only postings newer than this. |
+| `workplaceType` | `array` |  | Workplace type filter. |
+| `employmentType` | `array` |  | Employment type filter. |
+| `experienceLevel` | `array` |  | Seniority filter. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"linkedin.jobs","input":{"jobTitles":["example"],"maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "4308191234",
+  "new": true,
+  "query": {
+    "search": "software engineer",
+    "sortBy": "date",
+    "location": "New York"
+  },
+  "title": "Software Engineer",
+  "views": 412,
+  "salary": {
+    "max": 210000,
+    "min": 150000,
+    "currency": "USD",
+    "payPeriod": "YEARLY",
+    "providedByEmployer": true
+  },
+  "company": {
+    "id": "1441",
+    "name": "Priya Raman",
+    "website": "https://example.com",
+    "linkedinUrl": "https://linkedin.com/example-account/example",
+    "employeeCount": 12000,
+    "followerCount": 980000
+  },
+  "expireAt": "2026-08-27T09:12:00.000Z",
+  "jobState": "LISTED",
+  "location": {
+    "geoId": "105080838",
+    "countryCode": "US",
+    "linkedinText": "New York, NY"
+  },
+  "applicants": 37,
+  "hiringTeam": [
+    {
+      "name": "Jordan Blake",
+      "position": "Engineering Manager",
+      "linkedinUrl": "https://linkedin.com/example-account"
+    }
+  ],
+  "industries": [
+    "Software Development"
+  ],
+  "postedDate": "2026-07-28T09:12:00.000Z",
+  "applyMethod": {
+    "type": "OffsiteApply",
+    "companyApplyUrl": "https://example.com/careers/4308191234"
+  },
+  "linkedinUrl": "https://linkedin.com/example-account/view/4308191234",
+  "jobFunctions": [
+    "Engineering"
+  ],
+  "workplaceType": "hybrid",
+  "employmentType": "FULL_TIME",
+  "descriptionText": "We are hiring a software engineer to work on our platform team.",
+  "experienceLevel": "mid-senior",
+  "workRemoteAllowed": false
+}
+```

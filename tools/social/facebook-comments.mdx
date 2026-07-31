@@ -1,0 +1,57 @@
+---
+title: "Facebook post comments"
+description: "Comments and threaded replies on public Facebook posts, reels and videos, with comment text, author name and profile, timestamp, like count and threading depth."
+---
+
+Comments and threaded replies on public Facebook posts, reels and videos, with comment text, author name and profile, timestamp, like count and threading depth.
+
+<Note>Use to read the conversation under a specific Facebook post: sentiment, objections, questions, or who is engaging. Needs post URLs, not page URLs. Every reply counts as its own billed comment when includeNestedComments is on.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0020 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `startUrls` | `array` | yes | Facebook post, reel or video URLs, one object per post. |
+| `viewOption` | `RANKED_THREADED`, `RECENT_ACTIVITY`, `RANKED_UNFILTERED` |  | Comment sort order: most relevant, newest, or all. Defaults to `"RANKED_UNFILTERED"`. |
+| `resultsLimit` | `integer` |  | Maximum comments to return per post. Leave unset to return as many as possible, which can be thousands and is billed per comment. |
+| `includeNestedComments` | `boolean` |  | Return up to 3 levels of replies. Each reply is a separate result and is billed as its own comment. Defaults to `false`. |
+| `onlyCommentsNewerThan` | `string` |  | COSTS EXTRA. YYYY-MM-DD, full ISO, or relative like "3 days". Apify bills an additional filter-applied event of $0.001 per post scraped with a date filter. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"facebook.comments","input":{"startUrls":["example"],"resultsLimit":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "date": "2021-08-15T20:11:20.000Z",
+  "text": "This is exactly what our neighbourhood needed. Great to see it happening.",
+  "inputUrl": "https://facebook.com/example-account/posts/pfbid0BbKbkisExKGSKuhee9a7i86",
+  "commentId": "sample-id-000",
+  "postTitle": "(2/3) \"I knew nothing about gardening. But I knew how to google.\"",
+  "profileId": "sample-id-000",
+  "commentUrl": "https://facebook.com/example-account/posts/pfbid02F3KGSGECuu3q8Cu2ey4TDG",
+  "likesCount": "92",
+  "facebookUrl": "https://facebook.com/example-account/posts/pfbid0BbKbkisExKGSKuhee9a7i86",
+  "profileName": "Laurie Davis",
+  "profilePicture": "https://example.com/media/sample.jpg",
+  "threadingDepth": 0
+}
+```

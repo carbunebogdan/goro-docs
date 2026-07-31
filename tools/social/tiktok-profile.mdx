@@ -1,0 +1,76 @@
+---
+title: "TikTok profile posts"
+description: "Every post from one or more TikTok profiles at the cheapest per item price in the catalog, with views, likes, comments, shares, bookmarks, hashtags, the song, a"
+---
+
+Every post from one or more TikTok profiles at the cheapest per item price in the catalog, with views, likes, comments, shares, bookmarks, hashtags, the song, and the author's channel stats.
+
+<Note>Use when you want a creator's post history in bulk and cost matters more than the richer field set of tiktok.posts. Good for tracking a roster of creators, building a content database, or measuring engagement over time.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0003 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `since` | `string` |  | Only posts older than this date. Accepts YYYY-MM-DD. |
+| `until` | `string` |  | Only posts newer than this date. Accepts YYYY-MM-DD. |
+| `maxItems` | `integer` |  | Total posts to return across ALL targets, not per target. This is the field the price hold is sized from. Defaults to `100`. |
+| `startUrls` | `array` |  | TikTok profile URLs, e.g. https://www.tiktok.com/@nasa. An alternative to usernames. |
+| `usernames` | `array` |  | TikTok usernames, without the @ sign. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"tiktok.profile","input":{"maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "7665075736742530317",
+  "song": {
+    "title": "original sound",
+    "artist": "NASA"
+  },
+  "likes": 47932,
+  "title": "Something big just landed on TikTok.",
+  "video": {
+    "width": 720,
+    "height": 1280,
+    "duration": 25
+  },
+  "views": 382141,
+  "shares": 2244,
+  "channel": {
+    "id": "7664638705177150477",
+    "bio": "Making the seemingly impossible, possible.",
+    "name": "Sam Okafor",
+    "videos": 16,
+    "username": "example_user",
+    "verified": true,
+    "followers": 329461,
+    "following": 20
+  },
+  "comments": 1273,
+  "hashtags": [],
+  "postPage": "https://tiktok.com/example-account/video/7665075736742530317",
+  "bookmarks": 3786,
+  "uploadedAt": 1784664542,
+  "inputSource": "nasa",
+  "uploadedAtFormatted": "2026-07-21T20:09:02.000Z"
+}
+```

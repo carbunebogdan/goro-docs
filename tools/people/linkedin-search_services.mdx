@@ -1,0 +1,70 @@
+---
+title: "LinkedIn profile search by keyword"
+description: "Searches LinkedIn people by a free-text query such as a service, skill, or role ('fractional CFO', 'machine learning engineer') and returns matching profiles, o"
+---
+
+Searches LinkedIn people by a free-text query such as a service, skill, or role ("fractional CFO", "machine learning engineer") and returns matching profiles, optionally filtered by location. Email lookup is available as a paid mode.
+
+<Note>Use to build a list of people by what they do rather than by name, for prospecting, recruiting, or sizing a talent pool in a given market.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0040 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `search` | `string` | yes | Keyword query, for example "Founder" or "machine learning engineer". LinkedIn search operators are supported. |
+| `maxItems` | `integer` |  | Maximum profiles to return. This is the field the price quote is sized from. Defaults to `20`. |
+| `locations` | `array` |  | LinkedIn location filter, for example "United Kingdom". LinkedIn resolves free text loosely, so prefer the full country or city name. |
+| `startPage` | `integer` |  | Search page to start from. Each page holds 25 profiles. Defaults to `1`. |
+| `takePages` | `integer` |  | Number of search pages to scrape, 25 profiles each. Setting this above maxItems/25 raises the real cost without raising the quote, so prefer maxItems. |
+| `profileScraperMode` | `Short`, `Full`, `Full + email search` |  | Detail level per profile, and what each profile costs. Short bills $0.002, Full bills $0.004, and Full + email search bills $0.010, so the email mode is 2.5x the price of Full. Defaults to `"Short"`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"linkedin.search_services","input":{"search":"example","maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "ACoAAsampleProfileId00000000000000000",
+  "name": "Mia Fontaine",
+  "emails": [],
+  "picture": "https://example.com/media/sample.jpg",
+  "premium": false,
+  "headline": "Machine Learning Engineer at Acme AI",
+  "lastName": "Tomas Novak",
+  "location": {
+    "countryCode": "DE",
+    "linkedinText": "Berlin, Germany"
+  },
+  "education": [],
+  "firstName": "Alex Rivera",
+  "experience": [],
+  "linkedinUrl": "https://linkedin.com/example-account",
+  "followerCount": 3120,
+  "currentPosition": [
+    {
+      "position": "Machine Learning Engineer",
+      "companyName": "Acme AI"
+    }
+  ],
+  "connectionsCount": 1840,
+  "publicIdentifier": "jane-doe-ml"
+}
+```

@@ -1,0 +1,54 @@
+---
+title: "Instagram profile"
+description: "Public profile data for one or more Instagram accounts: follower and following counts, bio, verification, external link, and post count."
+---
+
+Public profile data for one or more Instagram accounts: follower and following counts, bio, verification, external link, and post count.
+
+<Note>Use when you need an Instagram account's stats or bio, to check whether a handle is real or verified, or to size a creator's audience before outreach.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0023 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `usernames` | `array` | yes | Instagram usernames or user IDs to scrape |
+| `includeAboutSection` | `boolean` |  | Also extract about-account info (join date, country). Billed extra at $0.006 per account. Defaults to `false`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"instagram.profile","input":{"usernames":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "url": "https://instagram.com/example-account/",
+  "follows": 150,
+  "private": false,
+  "username": "example_user",
+  "verified": true,
+  "biography": "Experience the world through the eyes of National Geographic photographers.",
+  "followers": 278000000,
+  "full_name": "Priya Raman",
+  "is_business": true,
+  "posts_count": 29500,
+  "external_url": "https://on.natgeo.com/instagram",
+  "profile_pic_url": "https://example.com/media/sample.jpg"
+}
+```

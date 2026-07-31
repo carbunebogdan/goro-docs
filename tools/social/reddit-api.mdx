@@ -1,0 +1,71 @@
+---
+title: "Reddit API search"
+description: "Reddit posts, comments, communities and users read through Reddit's own API, returning title, body, HTML, upvotes, comment count, author and community for each "
+---
+
+Reddit posts, comments, communities and users read through Reddit's own API, returning title, body, HTML, upvotes, comment count, author and community for each post.
+
+<Note>Use as the fast structured Reddit reader for a search query, a subreddit feed, a single post URL or a user profile. Each query, subreddit or URL is a separate job, and a search job always fetches and bills a full page of 25 items, so asking for fewer does not cost less.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0030 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `sort` | `relevance`, `hot`, `new`, `top`, `comments`, `controversial`, `rising` |  | relevance and comments are search-only. Subreddit feeds use hot, new, top, controversial or rising Defaults to `"relevance"`. |
+| `time` | `all`, `day`, `hour`, `month`, `week`, `year` |  |  Defaults to `"all"`. |
+| `maxItems` | `integer` |  | Maximum results per job. A search job always fetches and bills a full page of 25 items, so values below 25 do not cost less Defaults to `25`. |
+| `searches` | `array` |  | Search queries. Each query is a separate billed job. Wrap in quotes for an exact phrase |
+| `startUrls` | `array` |  | Reddit subreddit, post or user URLs. Each URL is a separate billed job |
+| `includeNSFW` | `boolean` |  |  Defaults to `false`. |
+| `searchPosts` | `boolean` |  |  Defaults to `true`. |
+| `searchUsers` | `boolean` |  |  Defaults to `false`. |
+| `skipComments` | `boolean` |  | For a direct post URL, return only the post without its comments Defaults to `false`. |
+| `skipCommunity` | `boolean` |  |  Defaults to `true`. |
+| `skipUserPosts` | `boolean` |  |  Defaults to `false`. |
+| `searchComments` | `boolean` |  |  Defaults to `false`. |
+| `fetchPostComments` | `boolean` |  | Also attach top-level comments to each post. One extra request per post and materially more billed items Defaults to `false`. |
+| `searchCommunities` | `boolean` |  |  Defaults to `false`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"reddit.api","input":{"maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "t3_1rxssfj",
+  "url": "https://www.reddit.com/r/apify/comments/1rxssfj/example_post_title/",
+  "body": "Hey everyone, the full selftext of the post.",
+  "html": "&lt;div class=\"md\"&gt;&lt;p&gt;Hey everyone&lt;/p&gt;&lt;/div&gt;",
+  "isAd": false,
+  "title": "Example post title",
+  "over18": false,
+  "isVideo": false,
+  "upVotes": 11,
+  "dataType": "post",
+  "parsedId": "1rxssfj",
+  "username": "example_user",
+  "createdAt": "2026-03-19T06:20:58.000Z",
+  "scrapedAt": "2026-07-30T14:34:01.975Z",
+  "communityName": "r/apify",
+  "numberOfComments": 16,
+  "parsedCommunityName": "apify"
+}
+```

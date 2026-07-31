@@ -1,0 +1,87 @@
+---
+title: "Amazon reviews (global)"
+description: "Amazon customer reviews across more than 20 regional domains, with star, keyword, media, date, language and verified purchase filters. Each review carries ratin"
+---
+
+Amazon customer reviews across more than 20 regional domains, with star, keyword, media, date, language and verified purchase filters. Each review carries rating, title, body, date, country, product variant, helpful votes, and any attached images or videos.
+
+<Note>Use for Amazon reviews outside the US, or when you need star, keyword, language or date filters, or reviews collected across every product variant. Use amazon.reviews for plain high volume pulls on one domain.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0009 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `sort` | `helpful`, `recent` |  |  Defaults to `"helpful"`. |
+| `limit` | `integer` |  | COSTS EXTRA. Review pages per product, 10 reviews each. Amazon itself stops at 10 pages (100 reviews) per product per filter. Defaults to `10`. |
+| `stars` | `array` |  | Scrape several specific star ratings. |
+| `rating` | `all`, `five_star`, `four_star`, `three_star`, `two_star`, `one_star`, `positive`, `critical` |  | Filter reviews by star rating. Defaults to `"all"`. |
+| `region` | `amazon.com`, `amazon.ca`, `amazon.de`, `amazon.fr`, `amazon.co.uk`, `amazon.it`, `amazon.es`, `amazon.com.au`, `amazon.co.jp`, `amazon.com.br`, `amazon.com.mx`, `amazon.nl`, `amazon.ie`, `amazon.se`, `amazon.com.tr`, `amazon.ae`, `amazon.sg`, `amazon.sa`, `amazon.pl`, `amazon.com.be`, `amazon.eg`, `amazon.in` |  | Amazon domain the ASINs belong to. Defaults to `"amazon.com"`. |
+| `end_date` | `string` |  | Inclusive end of the date range, YYYY-MM-DD. |
+| `keywords` | `array` |  | Only reviews containing these keywords. |
+| `language` | `all`, `en`, `es`, `fr`, `de`, `pt`, `it`, `nl`, `pl`, `sv`, `cs`, `zh_CN`, `zh_TW`, `ja`, `ko`, `ar`, `tr` |  |  Defaults to `"all"`. |
+| `products` | `array` | yes | Amazon ASINs or product review URLs. Cost scales with this array: every review of every product is billed. |
+| `all_stars` | `boolean` |  | COSTS EXTRA, up to 5x. Scrapes up to 100 reviews per star rating, so up to 500 billed reviews per product instead of 100. Defaults to `false`. |
+| `start_date` | `string` |  | Inclusive start of the date range, YYYY-MM-DD. |
+| `avp_reviews` | `boolean` |  | Only reviews with the verified purchase badge. Defaults to `false`. |
+| `personal_data` | `boolean` |  | Include reviewer names, profile ids and photos. Personal data under GDPR and CCPA, so only enable it if you have a lawful basis. Defaults to `false`. |
+| `include_variants` | `boolean` |  | COSTS EXTRA. Include reviews written for other variants of the product, which raises the number of billed reviews. Defaults to `false`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"amazon.reviews_global","input":{"products":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "images": [],
+  "rating": 3,
+  "videos": [],
+  "aspects": [],
+  "country": "US",
+  "language": "en",
+  "reviewId": "R2216I3XRQQT5A",
+  "profileId": null,
+  "reviewUrl": "https://www.amazon.com/review/R2216I3XRQQT5A",
+  "scrapedAt": "2026-07-30T14:32:20.346000+00:00",
+  "productUrl": "https://www.amazon.com/dp/B07MVJZQTC",
+  "reviewDate": "2026-07-27",
+  "reviewText": "Smells great but doesn't help with texturing or volume",
+  "reviewedIn": "Reviewed in the United States on July 27, 2026",
+  "sellerName": null,
+  "vineReview": false,
+  "productAsin": "B07MVJZQTC",
+  "profileName": null,
+  "reviewTitle": "Does not give the desired result",
+  "variantAsin": "B07MVJZQTC",
+  "productTitle": null,
+  "profilePhoto": null,
+  "totalRatings": null,
+  "variantSpecs": [
+    "Scent: Ocean Waves - Tropical Coconut",
+    "Size: 6 Fl Oz (Pack of 1)"
+  ],
+  "averageRating": null,
+  "ratingSummary": null,
+  "helpfulVoteCount": 0,
+  "reviewsAISummary": null,
+  "sellerProfileUrl": null,
+  "verifiedPurchase": true
+}
+```

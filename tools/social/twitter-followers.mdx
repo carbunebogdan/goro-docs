@@ -1,0 +1,66 @@
+---
+title: "X followers and following"
+description: "The follower list, and optionally the following list, of an X (Twitter) account, with each user's handle, display name, bio, location, follower and following co"
+---
+
+The follower list, and optionally the following list, of an X (Twitter) account, with each user's handle, display name, bio, location, follower and following counts, tweet and media counts, verification status, join date, and profile images.
+
+<Note>Use to map who follows an X account, to size and profile an audience, to find overlap between two accounts, or to build a lead list from a niche account's followers. One account per call, and set maxFollowers to how many you actually want since that is what you pay for.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0001 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `user_ids` | `array` |  | One numeric X user ID, as an alternative to user_names. When set, user_names is ignored. |
+| `user_names` | `array` |  | One X handle, without the @ sign. One account per call: the counts below apply per account, so a second account would double the bill against the same hold. |
+| `getFollowers` | `boolean` | yes | Return the follower list. Defaults to `true`. |
+| `getFollowing` | `boolean` | yes | Also return the following list. This adds up to maxFollowings more billed items on top of the followers. Defaults to `false`. |
+| `maxFollowers` | `integer` | yes | How many followers to return. The actor rejects anything below 200. This is the field the price hold is sized from. Defaults to `200`. |
+| `maxFollowings` | `integer` | yes | How many followed accounts to return, only used when getFollowing is true. The actor rejects anything below 200. Keep this at or below maxFollowers, since the hold is sized from maxFollowers. Defaults to `200`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"twitter.followers","input":{"maxFollowers":200,"maxFollowings":200,"getFollowers":"example"}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": 570563982,
+  "url": null,
+  "name": "Jordan Blake",
+  "type": "follower",
+  "id_str": "570563982",
+  "location": "",
+  "verified": false,
+  "protected": true,
+  "created_at": "Fri May 04 02:58:02 +0000 2012",
+  "description": "",
+  "media_count": 2,
+  "screen_name": "fearlesschan",
+  "listed_count": 0,
+  "friends_count": 555,
+  "statuses_count": 12,
+  "followers_count": 1,
+  "target_username": "apify",
+  "favourites_count": 126,
+  "profile_banner_url": "https://pbs.twimg.com/profile_banners/570563982/1573801910",
+  "profile_image_url_https": "https://pbs.twimg.com/profile_images/1195237951069835264/aJqNjWsn_normal.jpg"
+}
+```

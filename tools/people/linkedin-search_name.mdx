@@ -1,0 +1,77 @@
+---
+title: "LinkedIn profile search by name"
+description: "Find LinkedIn profiles by a person's first and last name, with optional filters for location, current or past company, school, job title and industry."
+---
+
+Find LinkedIn profiles by a person's first and last name, with optional filters for location, current or past company, school, job title and industry.
+
+<Note>Use when you know who you are looking for by name and want their LinkedIn profile. To search by role or skill rather than by name, use linkedin.search_services instead.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0040 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `schools` | `array` |  | School names to filter by, e.g. "Stanford University" |
+| `lastName` | `string` | yes | Last name of the person to find |
+| `maxItems` | `integer` |  | Maximum profiles to return. This is the field the price is sized on. Defaults to `10`. |
+| `maxPages` | `integer` |  | Search pages to scrape per query. Each page holds 25 profiles, so raising this raises the bill. Defaults to `1`. |
+| `firstName` | `string` | yes | First name of the person to find |
+| `locations` | `array` |  | LinkedIn location filters, e.g. "United Kingdom". LinkedIn misreads abbreviations, so spell the country out. |
+| `industryIds` | `array` |  | LinkedIn industry ids to filter by |
+| `strictSearch` | `boolean` |  | Return only profiles matching both first and last name exactly. Turning this off widens the search and can bill many more profiles. Defaults to `true`. |
+| `pastCompanies` | `array` |  | Full LinkedIn company URLs to filter by past employer |
+| `currentCompanies` | `array` |  | Full LinkedIn company URLs to filter by current employer |
+| `currentJobTitles` | `array` |  | Exact current job titles to filter by |
+| `profileScraperMode` | `Short`, `Full`, `Full + email search` |  | Detail level per profile, and what each profile costs. Short bills $0.002, Full bills $0.004, and Full + email search bills $0.010, so the email mode is 5x the price of Short. Defaults to the cheapest; ask for more only if you need it. Defaults to `"Short"`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"linkedin.search_name","input":{"firstName":"example","lastName":"example","maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "ACoAAsampleProfileId00000000000000000",
+  "photo": "https://example.com/media/sample.jpg",
+  "emails": [],
+  "premium": true,
+  "headline": "Head of Engineering at Example Corp",
+  "lastName": "Alex Rivera",
+  "location": {
+    "countryCode": "US",
+    "linkedinText": "Redmond, Washington, United States"
+  },
+  "education": [],
+  "firstName": "Sam Okafor",
+  "experience": [],
+  "openToWork": false,
+  "linkedinUrl": "https://linkedin.com/example-account",
+  "followerCount": 11200000,
+  "currentPosition": [
+    {
+      "position": "Chairman and CEO",
+      "companyName": "Microsoft",
+      "companyLinkedinUrl": "https://linkedin.com/example-account/microsoft/"
+    }
+  ],
+  "connectionsCount": 500,
+  "publicIdentifier": "satya-nadella-01272362"
+}
+```

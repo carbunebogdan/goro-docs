@@ -1,0 +1,78 @@
+---
+title: "LinkedIn profile"
+description: "Full LinkedIn profile records for a list of profile URLs: headline, current role, employer details, full work history, education, skills, certifications, langua"
+---
+
+Full LinkedIn profile records for a list of profile URLs: headline, current role, employer details, full work history, education, skills, certifications, languages, and a contact email or phone when the actor can resolve one.
+
+<Note>Use when you already have LinkedIn profile URLs and need the complete record behind each one, for lead enrichment, candidate research, or confirming someone's current title and employer.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.01 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `profileUrls` | `array` | yes | LinkedIn profile URLs to enrich, for example https://www.linkedin.com/in/example-profile. One result, and one billable item, per URL. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"linkedin.profile","input":{"profileUrls":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "about": "Founder of Example Ventures. Writes about climate technology.",
+  "email": null,
+  "skills": [
+    {
+      "title": "Philanthropy"
+    }
+  ],
+  "fullName": "Jordan Blake",
+  "headline": "Founder at Example Ventures",
+  "jobTitle": "Co-chair",
+  "lastName": "Mia Fontaine",
+  "firstName": "Tomas Novak",
+  "isPremium": true,
+  "educations": [
+    {
+      "title": "Harvard University",
+      "subtitle": "Drop out"
+    }
+  ],
+  "isVerified": true,
+  "companyName": "Bill & Melinda Gates Foundation",
+  "companySize": "1001-5000",
+  "experiences": [
+    {
+      "title": "Co-chair",
+      "companyName": "Bill & Melinda Gates Foundation",
+      "jobStartedOn": "2000",
+      "jobStillWorking": true
+    }
+  ],
+  "linkedinUrl": "https://linkedin.com/example-account",
+  "mobileNumber": null,
+  "companyWebsite": "gatesfoundation.org",
+  "companyIndustry": "Philanthropic Fundraising Services",
+  "publicIdentifier": "example-profile",
+  "addressWithCountry": "Seattle, Washington, United States",
+  "totalExperienceYears": 48
+}
+```

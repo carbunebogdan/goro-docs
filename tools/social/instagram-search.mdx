@@ -1,0 +1,50 @@
+---
+title: "Instagram search"
+description: "Search Instagram by keyword for hashtags, profiles, or places. Each result carries a type field, and the shape follows it: hashtags return a post count, profile"
+---
+
+Search Instagram by keyword for hashtags, profiles, or places. Each result carries a type field, and the shape follows it: hashtags return a post count, profiles return follower stats, places return an address and coordinates.
+
+<Note>Use when you need to find Instagram accounts or hashtags for a topic and do not already know the handle, for example building a creator shortlist.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0023 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `search` | `string` | yes | Keyword to search. Comma-separate for multiple terms. |
+| `liveSearch` | `boolean` |  | Use live Instagram search; returns a slightly different shape |
+| `searchType` | `place`, `user`, `hashtag`, `popular` |  | What to search for. The result shape follows this. Defaults to `"hashtag"`. |
+| `searchLimit` | `integer` |  | Maximum results per search term Defaults to `10`. |
+| `enhanceUserSearchWithFacebookPage` | `boolean` |  | Enrich the top 10 users with Facebook page and business email. Higher cost, and personal data: check your jurisdiction. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"instagram.search","input":{"search":"example","searchLimit":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "coffeelover",
+  "url": "https://instagram.com/example-account/tags/coffeelover",
+  "name": "example_user",
+  "type": "hashtag",
+  "posts_count": 12345000
+}
+```

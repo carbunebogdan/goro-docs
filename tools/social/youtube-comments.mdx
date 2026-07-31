@@ -1,0 +1,58 @@
+---
+title: "YouTube comments"
+description: "Comments on one or more YouTube videos, with author, comment text, vote count, reply count, whether the channel owner wrote it, and how long ago it was posted."
+---
+
+Comments on one or more YouTube videos, with author, comment text, vote count, reply count, whether the channel owner wrote it, and how long ago it was posted.
+
+<Note>Use to read audience reaction under specific videos, mine questions, objections or feature requests, or sample sentiment on a launch. Point it at video URLs, not channels. maxComments is per video, so several URLs multiply the bill.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0015 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `startUrls` | `array` | yes | Direct YouTube video URLs. maxComments applies to EACH url, so two urls at 50 comments bills up to 100 comments |
+| `maxComments` | `integer` |  | Maximum comments per video. Billed per comment Defaults to `10`. |
+| `sortCommentsBy` | `TOP_COMMENTS`, `NEWEST_FIRST` |  |  Defaults to `"NEWEST_FIRST"`. |
+| `oldestCommentDate` | `string` |  | Only comments posted on or after this date, e.g. 2026-06-01, or a relative age like "7 days" |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"youtube.comments","input":{"startUrls":["example"],"maxComments":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "cid": "sample-id-000",
+  "type": "comment",
+  "title": "How to extract data from YouTube with YouTube Scraper",
+  "author": "example_user",
+  "comment": "Try YouTube Scraper for FREE at https://apify.it/4cjeX9W",
+  "pageUrl": "https://www.youtube.com/watch?v=xObhZ0Ga7EQ",
+  "videoId": "xObhZ0Ga7EQ",
+  "voteCount": 2,
+  "replyCount": 1,
+  "replyToCid": null,
+  "commentsCount": 14,
+  "hasCreatorHeart": false,
+  "publishedTimeText": "4 years ago (edited)",
+  "authorIsChannelOwner": true
+}
+```

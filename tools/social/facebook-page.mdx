@@ -1,0 +1,64 @@
+---
+title: "Facebook page profile"
+description: "Public profile data for Facebook pages: title, category, likes and follower counts, intro text, contact email, website, creation date, ad status and photo URLs."
+---
+
+Public profile data for Facebook pages: title, category, likes and follower counts, intro text, contact email, website, creation date, ad status and photo URLs.
+
+<Note>Use to enrich a business or brand from its Facebook page, for audience size, contact details, category and website. Works on pages only, never on personal profiles. One page is billed per URL you pass.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0082 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `startUrls` | `array` | yes | Facebook page URLs, one object per page. Pages only, not personal profiles. Billed one page per URL. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"facebook.page","input":{"startUrls":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "email": "contact@example.com",
+  "intro": "Explore the universe and discover our home planet.",
+  "likes": 28660274,
+  "title": "NASA - National Aeronautics and Space Administration",
+  "pageId": "100044561550831",
+  "website": "https://www.nasa.gov/nasa-app/",
+  "category": "Government organization",
+  "pageName": "NASA",
+  "websites": [
+    "https://www.nasa.gov/nasa-app/",
+    "https://www.nasa.gov/"
+  ],
+  "ad_status": "This Page isn't currently running ads.",
+  "followers": 28660274,
+  "categories": [
+    "Page",
+    "Government organization"
+  ],
+  "followings": 52,
+  "facebookUrl": "https://facebook.com/example-account/",
+  "coverPhotoUrl": "https://example.com/media/sample.jpg",
+  "creation_date": "March 4, 2009",
+  "profilePictureUrl": "https://example.com/media/sample.jpg"
+}
+```

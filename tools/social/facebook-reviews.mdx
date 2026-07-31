@@ -1,0 +1,63 @@
+---
+title: "Facebook page reviews"
+description: "Recommendations and reviews left on a public Facebook page, with review text, reviewer, date, recommended or not, attribute tags and engagement counts."
+---
+
+Recommendations and reviews left on a public Facebook page, with review text, reviewer, date, recommended or not, attribute tags and engagement counts.
+
+<Note>Use to read what customers say about a business on Facebook: reputation checks, review mining, competitor research. Pass the page's reviews URL in the form facebook.com/pagename/reviews.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0020 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `startUrls` | `array` | yes | Facebook page review URLs, in the form https://www.facebook.com/pagename/reviews, one object per page. |
+| `resultsLimit` | `integer` |  | Maximum reviews to return per page. Leave unset to return as many as possible, billed per review. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"facebook.reviews","input":{"startUrls":["example"],"resultsLimit":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "UzpfSTEwMDAwODg0Mjg0MTAzMDozNDMzNTYyNDMzNjE1MTUx",
+  "url": "https://facebook.com/example-account/posts/pfbid0bZAHZYxvvsoX1cVRMsoySYX",
+  "date": "2024-09-11T17:57:58.000Z",
+  "tags": [
+    "Child-friendly",
+    "Fast delivery",
+    "Cosy atmosphere"
+  ],
+  "text": "They offer a cozy atmosphere, friendly service, and a menu of tasty comfort food at reasonable prices.",
+  "user": {
+    "id": "100008842841030",
+    "name": "Sam Okafor",
+    "profileUrl": "https://facebook.com/example-account"
+  },
+  "inputUrl": "https://facebook.com/example-account/reviews",
+  "legacyId": "3433562433615151",
+  "pageName": "copperkettleyqr",
+  "likesCount": 0,
+  "facebookUrl": "https://facebook.com/example-account",
+  "commentsCount": 0,
+  "isRecommended": true
+}
+```

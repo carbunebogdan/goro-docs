@@ -1,0 +1,84 @@
+---
+title: "Amazon product reviews"
+description: "Customer reviews for one or more Amazon ASINs, with rating, title, body text, author name, date, verified purchase and Vine flags, helpful votes, attached image"
+---
+
+Customer reviews for one or more Amazon ASINs, with rating, title, body text, author name, date, verified purchase and Vine flags, helpful votes, attached image and video URLs, plus the product overall rating and its star distribution.
+
+<Note>Use to read what buyers actually say about a specific Amazon product, to mine complaints and feature requests, or to track review sentiment over time. This is the high volume reviews tool. Use amazon.reviews_global when you need non US Amazon domains or star, keyword and date filters.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0009 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `input` | `array` | yes | One entry per ASIN. Every review returned is billed, so each extra entry and each extra page multiplies the cost. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"amazon.reviews","input":{"input":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "asin": "B07CMS5Q6P",
+  "date": "Reviewed in the United States on July 27, 2026",
+  "text": "Battery life is genuinely months, not weeks. Tracking is flawless on a cloth pad.",
+  "vine": false,
+  "title": "Excellent mouse for the price",
+  "rating": "5.0 out of 5 stars",
+  "reviewId": "R2216I3XRQQT5A",
+  "userName": "J. Fischer",
+  "verified": true,
+  "domainCode": "com",
+  "statusCode": 200,
+  "currentPage": 1,
+  "profilePath": "/gp/profile/amzn1.account.EXAMPLE",
+  "countRatings": 39211,
+  "countReviews": 4210,
+  "imageUrlList": [],
+  "productTitle": "Logitech G305 Lightspeed Wireless Gaming Mouse",
+  "sortStrategy": "recent",
+  "videoUrlList": [],
+  "productRating": "4.6 out of 5 stars",
+  "reviewSummary": {
+    "oneStar": {
+      "percentage": 2
+    },
+    "twoStar": {
+      "percentage": 2
+    },
+    "fiveStar": {
+      "percentage": 78
+    },
+    "fourStar": {
+      "percentage": 13
+    },
+    "threeStar": {
+      "percentage": 5
+    }
+  },
+  "statusMessage": "success",
+  "variationList": [
+    "Style: Classic",
+    "Color: Black"
+  ],
+  "numberOfHelpful": 3
+}
+```

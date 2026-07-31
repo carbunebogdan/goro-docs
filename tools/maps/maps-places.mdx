@@ -1,0 +1,56 @@
+---
+title: "Google Maps places"
+description: "Search Google Maps for places matching a query and get back name, address, rating, review count, phone, website, and coordinates. Billed on actual usage: the ho"
+---
+
+Search Google Maps for places matching a query and get back name, address, rating, review count, phone, website, and coordinates. Billed on actual usage: the hold scales with how many places you request, up to $6.00 per call.
+
+<Note>Use when you need local businesses or points of interest, lead lists for a city or area, or place details like ratings and contact info.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0030 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `language` | `string` |  |  Defaults to `"en"`. |
+| `locationQuery` | `string` |  | Where to search, e.g. "Berlin, Germany" |
+| `scrapeContacts` | `boolean` |  | Also extract contact details. Billed extra at $0.002 per place. Defaults to `false`. |
+| `skipClosedPlaces` | `boolean` |  |  Defaults to `false`. |
+| `placeMinimumStars` | ``, `two`, `twoAndHalf`, `three`, `threeAndHalf`, `four`, `fourAndHalf` |  |  |
+| `searchStringsArray` | `array` | yes | What to search for, e.g. "coffee shop" or a category |
+| `maxCrawledPlacesPerSearch` | `integer` |  | Maximum places per search string Defaults to `20`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"maps.places","input":{"searchStringsArray":["example"],"maxCrawledPlacesPerSearch":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "lat": 44.4322,
+  "lng": 26.0993,
+  "url": "https://maps.google.com/?cid=123",
+  "name": "Sam Okafor",
+  "phone": "+1 555 0100",
+  "rating": 4.6,
+  "address": "Strada Lipscani 9, Bucharest",
+  "website": "https://origocoffee.ro",
+  "reviews_count": 2731
+}
+```

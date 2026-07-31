@@ -1,0 +1,97 @@
+---
+title: "Facebook Ads Library"
+description: "Ads from the public Facebook Ads Library for a page or a keyword search, with creative body, headline, call to action, landing URL, run dates, platforms and pag"
+---
+
+Ads from the public Facebook Ads Library for a page or a keyword search, with creative body, headline, call to action, landing URL, run dates, platforms and page metadata.
+
+<Note>Use for competitor ad research: what a brand is running right now, which hooks and landing pages it uses, and how long each ad has been live. Note the billing model, count is the maximum CHARGED results and the actor bills the full count even when fewer ads exist.</Note>
+
+## Price
+
+Billed on what the call actually consumes, at roughly **$0.0008 per result** plus our margin. `discover` and `inspect` return a ceiling for your specific request, and you are never charged above it.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `urls` | `array` | yes | Facebook page URLs, or Ads Library search URLs such as https://www.facebook.com/ads/library/?q=nike&country=US, one object per source. |
+| `count` | `integer` |  | Maximum CHARGED results. The actor refuses to run below 10 and bills this full number even when fewer ads are found, verified live 2026-07-30 (count 10 returned 3 ads and billed 10). Set it to what you are willing to pay for. |
+| `runTag` | `string` |  | Free-form label copied into a runTag column on every output row. |
+| `limitPerSource` | `integer` |  | Maximum ads per input URL. The actual number can exceed this by up to 30. Use count to bound the bill. |
+| `scrapeAdDetails` | `boolean` |  | Also fetch ad detail data such as EU reach info. No extra charge event, but it makes runs slower. |
+| `scrapePageAds.period` | ``, `last24h`, `last7d`, `last14d`, `last30d` |  | Date range filter applied when scraping ads from page URLs. Defaults to `""`. |
+| `scrapePageAds.sortBy` | `impressions_desc`, `most_recent` |  | Sort page ads by impressions or recency. Defaults to `"impressions_desc"`. |
+| `scrapePageAds.countryCode` | `string` |  | Uppercase ISO 3166-1 alpha-2 country code, or ALL. Defaults to `"ALL"`. |
+| `scrapePageAds.activeStatus` | `all`, `active`, `inactive` |  | Filter page ads by active status. Defaults to `"all"`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"facebook.ads","input":{"urls":["example"],"count":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "url": "https://facebook.com/example-account",
+  "spend": null,
+  "page_id": "309796912374932",
+  "currency": "",
+  "end_date": 1782457200,
+  "position": 1,
+  "snapshot": {
+    "body": {
+      "text": "{{product.brand}}"
+    },
+    "cards": [
+      {
+        "body": "See how Zapier can give you more time for what matters most. Start automating your work for free, no code required.",
+        "title": "Start automating your work today",
+        "cta_text": "Sign Up",
+        "cta_type": "SIGN_UP",
+        "link_url": "https://zapier.com/"
+      }
+    ],
+    "title": "{{product.name}}",
+    "images": [],
+    "videos": [],
+    "cta_text": "Sign Up",
+    "cta_type": "SIGN_UP",
+    "link_url": "https://zapier.com/",
+    "page_name": "Zapier",
+    "display_format": "DCO",
+    "page_categories": [
+      "Business"
+    ],
+    "page_profile_uri": "https://facebook.com/example-account/"
+  },
+  "ads_count": 1,
+  "is_active": false,
+  "page_name": "Zapier",
+  "categories": [
+    "UNKNOWN"
+  ],
+  "start_date": 1745305200,
+  "ad_archive_id": "1736224493918475",
+  "ad_library_url": "https://facebook.com/example-account/library/?id=1736224493918475",
+  "reach_estimate": null,
+  "collation_count": 1,
+  "end_date_formatted": "2026-06-26 07:00:00",
+  "publisher_platform": [
+    "FACEBOOK"
+  ],
+  "start_date_formatted": "2025-04-22 07:00:00"
+}
+```
