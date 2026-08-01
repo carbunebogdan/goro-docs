@@ -1,11 +1,11 @@
 ---
 title: "For AI agents: MCP"
 sidebarTitle: "For AI agents (MCP)"
-description: "Add Goro to Claude, Cursor or any MCP client as a connector, and your agent gets the whole catalog as five tools."
+description: "Add Goro to Claude, Cursor or any MCP client as a connector, and your agent gets the whole catalog as six tools."
 ---
 
 Goro runs a remote MCP server. Add one URL to your client and the agent gets
-five tools that reach the entire catalog, on the same balance and the same
+six tools that reach the entire catalog, on the same balance and the same
 prices as the HTTP API.
 
 ```
@@ -34,7 +34,7 @@ both:
 
 | Scope | Grants |
 | --- | --- |
-| `tools:read` | `discover_tools`, `inspect_tool`, `get_run`, `wallet_balance` |
+| `tools:read` | `discover_tools`, `inspect_tool`, `create_upload`, `get_run`, `wallet_balance` |
 | `tools:run` | `run_tool` |
 
 Access tokens last an hour and the client refreshes them silently. Refresh
@@ -46,12 +46,13 @@ tokens last 30 days and rotate on every use.
   [OAuth quickstart](/guide/quickstart-oauth).
 </Note>
 
-## 3. The five tools
+## 3. The six tools
 
 | Tool | Scope | When the agent calls it |
 | --- | --- | --- |
 | `discover_tools` | `tools:read` | First, whenever the task needs live or external data and the exact slug is unknown |
 | `inspect_tool` | `tools:read` | Before running a tool whose input shape is not already known |
+| `create_upload` | `tools:read` | Before `run_tool`, whenever the tool needs a file the agent holds locally. It spends nothing |
 | `run_tool` | `tools:run` | To actually execute a tool. This spends money |
 | `get_run` | `tools:read` | To poll a `run_tool` call that came back with a `run_id` |
 | `wallet_balance` | `tools:read` | To check available funds, or after an `insufficient_funds` error |
@@ -74,6 +75,22 @@ instruction to poll `get_run` until the status is terminal.
 `wallet_balance` returns the available balance and a `top_up_url`, which is
 what an agent should surface to a human when funds run out.
 
+### Sending a file
+
+One rule, and it matters more than it looks: an agent must never read a file
+into the conversation in order to send it. Tool arguments pass through the
+context window exactly like tool results do, so a 3 MB photograph sent as
+`image_base64` is roughly a million tokens, gets truncated, and fails the run
+with something that reads like file corruption.
+
+`create_upload` is the way round it. It takes a `content_type`, returns a short
+handle plus a URL to PUT the file to, and includes the exact `curl` to run. The
+agent uploads the file with its own shell, then passes the handle as
+`image_handle` in `run_tool`. The bytes never enter the conversation, the
+ceiling goes from 3 MB to 10 MB, and the handle itself is about thirty
+characters. Do not shrink the image to make it fit: size was never the problem
+the upload path is solving. [Uploads](/api/uploads) documents the whole flow.
+
 ## 4. Errors an agent will meet
 
 Tool errors carry the same `code` and `message` as the HTTP API, so one set of
@@ -91,7 +108,7 @@ instructions covers both surfaces.
 ## What this shares with the API
 
 Everything. The MCP tools are thin wrappers over the same code paths as
-`/v1/discover`, `/v1/inspect`, `/v1/run`, `/v1/runs/{id}` and
+`/v1/discover`, `/v1/inspect`, `/v1/uploads`, `/v1/run`, `/v1/runs/{id}` and
 `/v1/wallet/balance`. Same catalog, same holds, same charges, same ledger.
 
 Rows arrive in the `run_tool` response, or in the `get_run` poll that finds the
@@ -102,5 +119,5 @@ media link, from a voice or image tool, have it download the file too: those
 links expire on the same clock or on the model provider's.
 
 <Card title="Full API reference" icon="code" href="/api/overview">
-  The endpoints behind the five tools.
+  The endpoints behind the six tools.
 </Card>

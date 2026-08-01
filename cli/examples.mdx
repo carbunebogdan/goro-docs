@@ -98,6 +98,21 @@ run_id=$(goro run -s maps.places -f big-query.json -j | jq -r '.run_id')
 goro runs get -r "$run_id" --wait --timeout 900 -o places.json
 ```
 
+## Animate a local photo
+
+```bash
+goro run -s video.grok \
+  -i '{"prompt":"The camera pulls back slowly as the neon sign flickers.","duration":6}' \
+  --image ./storefront.jpg --wait -o clip.json
+
+curl -sL "$(jq -r '.output[0]' clip.json)" -o clip.mp4
+```
+
+`--image` uploads the file straight to storage and passes the handle, so the
+picture never has to be published anywhere and never has to be base64. The run
+answers with a link to the MP4 rather than the file, and that link is the model
+provider's and temporary, which is why the download is in the same script.
+
 ## Two workspaces on one machine
 
 ```bash

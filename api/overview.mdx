@@ -3,7 +3,7 @@ title: "API overview"
 description: "Base URL, authentication, money format, pagination and the full error contract."
 ---
 
-The Goro HTTP API is nine endpoints over one base URL. Everything is JSON in
+The Goro HTTP API is ten endpoints over one base URL. Everything is JSON in
 and JSON out, and every response is either the documented success body or an
 error body with a `code` you can branch on.
 
@@ -16,6 +16,7 @@ https://api.usegoro.ai
 | [`/v1/discover`](/api/discover) | POST | Rank the catalog against a plain-English query |
 | [`/v1/inspect`](/api/inspect) | POST | Read one tool's input schema, output sample and price |
 | [`/v1/run`](/api/run) | POST | Run a tool |
+| [`/v1/uploads`](/api/uploads) | POST | Get a handle and a URL to PUT a file to, for a tool that takes one |
 | [`/v1/runs`](/api/runs) | GET | List your runs, newest first |
 | [`/v1/runs/{id}`](/api/runs) | GET | Fetch or advance one run |
 | [`/v1/runs/{id}/stop`](/api/runs) | POST | Stop a run that is still going |

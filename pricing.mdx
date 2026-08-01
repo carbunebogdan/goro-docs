@@ -18,8 +18,8 @@ written on the tool's page, and comes back as `price.type` from `discover` and
 | Shape | What you are quoted | Where it applies |
 | --- | --- | --- |
 | Per result | A rate per row plus a ceiling. The total follows the rows the call really produced | Search, social, maps, commerce, people data |
-| Flat | One exact price per call, the same every time | Image generation |
-| Metered | An exact rate against something measurable in your request, plus a ceiling | Voice |
+| Flat | One exact price per call, the same every time | Image generation, and `video.veo` |
+| Metered | An exact rate against something measurable in your request, plus a ceiling | Voice, and every other video endpoint |
 
 Only the first has a total that cannot be known before the call, and most of
 this page is about that case. The other two are arithmetic you can do in
@@ -32,12 +32,21 @@ Z-Image, $0.06 on Grok Imagine, $0.0825 on Seedream 5 Lite, $0.18 on Nano
 Banana 2. There is no ceiling to read and nothing to settle afterwards, and a
 call that fails is not charged at all.
 
+`video.veo` prices the same way, at $3.8250 a call, because it only makes videos
+of one length.
+
 ### Metered
 
 A voice call bills a published rate against a quantity you can measure
 yourself. Text to speech is $0.0450 per 1,000 UTF-8 bytes of the text you send,
 and no call can exceed $0.36. Speech to text is $0.0003 per second of audio,
 which works out at $1.08 an hour, and no call can exceed $1.08.
+
+The other five video endpoints bill the same way, against the seconds of video
+you ask for. The rate is per second and differs by model, from $0.0450 on Grok
+Imagine to $0.6150 on Seedance 5 Pro, and `duration` is the only field that
+changes the price. The ceiling on one of those is that rate times the longest
+clip the endpoint accepts.
 
 The rate is exact, so the total is your input size times the rate. The ceiling
 is still a ceiling: it is the price of the largest request the endpoint takes,

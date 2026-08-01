@@ -4,7 +4,8 @@ description: "Everything your agent can reach through one connection."
 ---
 
 Goro exposes 54 tools: search, social, maps, commerce and people data, plus
-image generation and voice. You do not need to memorise them: `discover` ranks
+image generation, video generation and voice. You do not need to memorise them:
+`discover` ranks
 the catalog against a plain-English question and hands back the best matches
 with their prices.
 
@@ -36,15 +37,15 @@ print. The values are illustrative, not real records.
 
 ## Three providers behind one balance
 
-The data tools run on Apify. Image generation runs on kie.ai. Voice runs on
-Fish Audio. You never hold an account or a key with any of them, and every call
-draws from the same balance.
+The data tools run on Apify. Image and video generation run on kie.ai. Voice
+runs on Fish Audio. You never hold an account or a key with any of them, and
+every call draws from the same balance.
 
 The difference you can see is in the price. Apify bills us for what a scrape
 actually consumed, so those tools quote a rate per row and settle on the rows
-they really produced. kie.ai charges a fixed amount per generation and Fish
-bills a published rate against a measurable input, so those tools quote an
-exact price you can work out before you call.
+they really produced. kie.ai charges a fixed amount per image and a rate per
+second of video, and Fish bills a published rate against a measurable input, so
+those tools quote an exact price you can work out before you call.
 
 ## Collecting a result
 

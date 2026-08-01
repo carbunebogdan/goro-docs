@@ -5,7 +5,8 @@ description: "One connection gives your agent search, scraping and enrichment ac
 
 Goro is a pay-per-call gateway. Your agent connects once, and gets a catalog of
 tools that reach the real world: search, social profiles and posts, maps and
-reviews, product and jobs data, image generation, and voice in both directions.
+reviews, product and jobs data, image and video generation, and voice in both
+directions.
 
 You hold a prepaid balance and each call draws from it. There is no
 subscription and no seat. A scrape bills what it actually consumed plus our
@@ -45,9 +46,9 @@ prices.
 | HTTP API | `https://api.usegoro.ai` | A `goro_live_` API key as a Bearer token |
 | MCP server | `https://mcp.usegoro.ai/mcp` | An OAuth 2.1 access token |
 
-The MCP server exposes five tools (`discover_tools`, `inspect_tool`,
-`run_tool`, `get_run`, `wallet_balance`), each a thin wrapper over the same
-code the HTTP endpoints call.
+The MCP server exposes six tools (`discover_tools`, `inspect_tool`,
+`create_upload`, `run_tool`, `get_run`, `wallet_balance`), each a thin wrapper
+over the same code the HTTP endpoints call.
 
 ## What Goro keeps, and for how long
 

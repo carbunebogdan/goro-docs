@@ -1,0 +1,235 @@
+---
+title: "Uploads"
+description: "POST /v1/uploads. Send a file to Goro out of band, then name it in the run with a short handle instead of its bytes."
+---
+
+```
+POST https://api.usegoro.ai/v1/uploads
+```
+
+Mints an upload handle and a URL you PUT a file to. It costs nothing, spends
+nothing and writes no run row. One thing in the catalog takes a file today: the
+starting image a [video endpoint](/tools/video/video-grok) animates.
+
+## Why the handle exists
+
+Tool arguments pass through a model's context window exactly like tool results
+do. Sending a photograph as `image_base64` therefore means the agent emits the
+whole file as tool-call arguments, and a 3 MB image is 4 MB of base64, on the
+order of a million tokens. What happens next is not theoretical: the payload is
+truncated, the run fails with something that reads like file corruption, and the
+agent downscales the user's photo and tries again with a smaller one.
+
+A handle is about thirty characters. The bytes go from you straight to storage,
+so they never pass through the model and never pass through Goro's API either.
+
+## The three steps
+
+### 1. Ask for somewhere to put the file
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/uploads \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"content_type": "image/jpeg"}'
+```
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `content_type` | string | yes | The type of the file you are about to upload: `image/jpeg`, `image/png` or `image/webp` |
+
+The type you declare decides the object's extension and the type the store will
+serve it as. It is a claim rather than evidence, and it is treated as one: the
+file's own leading bytes are read when the handle is redeemed, and a pair that
+disagrees is refused.
+
+```json
+{
+  "handle": "upl_9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg",
+  "upload_url": "https://<storage-host>/object/upload/sign/input-image/0f1e2d3c/9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg?token=eyJhbGciOi...",
+  "upload_method": "PUT",
+  "upload_headers": { "Content-Type": "image/jpeg" },
+  "max_bytes": 10485760,
+  "accepted_content_types": ["image/jpeg", "image/png", "image/webp"],
+  "usable_for_seconds": 600,
+  "deleted_after_seconds": 1800,
+  "next": {
+    "upload": "curl -X PUT --data-binary @<file> -H \"Content-Type: image/jpeg\" \"<upload_url>\"",
+    "then": "Send image_handle: \"upl_9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg\" in the run input. Do not send image_base64 as well."
+  },
+  "note": "Upload the file, then run within 10 minutes. The file is private (no public read, no unsigned address that works) and is deleted 30 minutes after it lands, so get the handle immediately before the run rather than in advance."
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `handle` | string | What you pass as `image_handle` in the run input |
+| `upload_url` | string | Where to PUT the file. Signed, single use, and it addresses the storage bucket rather than Goro |
+| `upload_method` | string | `PUT` |
+| `upload_headers` | object | The headers to send with the PUT. Today only `Content-Type`, set to the type you declared |
+| `max_bytes` | integer | 10485760, ten megabytes |
+| `accepted_content_types` | array | The three types `content_type` accepts |
+| `usable_for_seconds` | integer | 600. How long after the upload finishes the handle can still be redeemed |
+| `deleted_after_seconds` | integer | 1800. How long after the file lands it is deleted |
+| `next`, `note` | object, string | The next command and the rule in a sentence, for a model reading the response |
+
+Values are illustrative. Treat `upload_url` as opaque: it addresses the storage
+provider rather than `api.usegoro.ai`, and it carries its own credential in the
+query string.
+
+### 2. PUT the file
+
+```bash
+curl -X PUT --data-binary @photo.jpg \
+  -H "Content-Type: image/jpeg" \
+  "$UPLOAD_URL"
+```
+
+Send no `Authorization` header with it. The URL is the credential, it is good
+for one write to one path, and it points at the private bucket directly. That is
+the whole point of the two requests: the file never enters a Goro serverless
+function, never meets a request body limit, and never enters the model.
+
+### 3. Run the tool with the handle
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "slug": "video.grok",
+    "input": {
+      "prompt": "The camera pushes in slowly as the steam rises and the light shifts towards evening.",
+      "image_handle": "upl_9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg"
+    }
+  }'
+```
+
+A handle is `upl_`, then 22 base64url characters, then `.jpg`, `.png` or
+`.webp`. Nothing else parses, because the handle becomes part of a storage path.
+It carries the object id and the extension and nothing else: the workspace comes
+from the key you authenticated with, so another workspace's handle looks in your
+own prefix for an object that is not there.
+
+## Three ways to send a starting image
+
+Exactly one of these per call. Sending two is refused, because picking a winner
+would mean animating an image you did not mean and charging you for it.
+
+| Field | Use it when | Ceiling |
+| --- | --- | --- |
+| `image_handle` | Any file you hold locally or privately. This is the road most callers should take | 10 MB |
+| `image_urls` | The image is already on a public https link, including the output URL of an image endpoint | 10 MB |
+| `image_base64` | The image is genuinely small, or you have no shell to run the PUT with | 3 MB |
+
+`image_base64` is not going away. It is the right answer for a small file and
+for a caller that cannot make a second request. It is the wrong answer for a
+photograph, and the failure it produces is silent enough to be worth naming: a
+truncated base64 string decodes to fewer, wrong bytes rather than to an error.
+
+## Why the ceilings differ
+
+The handle path and the link path both stop at 10 MB, which is kie.ai's own
+per-image limit, so Goro rejects exactly what the model would reject and nothing
+more. On the upload path that limit is also declared on the bucket, so an
+oversized file is refused by the storage layer before a byte of it is stored.
+
+The inline path stops at 3 MB for a reason that has nothing to do with images.
+Base64 inflates by exactly 4/3, so 3 MB of image is 4 MB of request body, and
+the serverless request body limit behind this API is 4.5 MB. That ceiling is a
+property of the transport and cannot be raised. An upload does not go through
+that transport at all, which is the second reason it exists.
+
+## The two clocks
+
+| Clock | Value | What it governs |
+| --- | --- | --- |
+| Redemption | 10 minutes | How long after the upload finishes the handle can still be used in a run |
+| Retention | 30 minutes | How long the file exists at all, counted from when it lands |
+
+The second number did not change when uploads were added. The ten minutes are
+subtracted from the thirty rather than added to them: the signed link handed to
+the generative provider is worth the twenty that remain, so a link can never
+outlive the object it points at, and no image lives past thirty minutes. The file is deleted by a
+scheduled sweep that reads the bucket by age every ten minutes, which is the same
+job, the same bucket and the same clock the inline intake already used.
+
+The practical rule is one line: get the handle immediately before the run, not in
+advance. A handle from an earlier session is expected to be gone.
+
+## What is stored, and what is not
+
+Nothing about the upload path is more exposed than the inline one, and in one
+respect it is less: the bytes reach storage without passing through our API.
+
+- The bucket is private. There is no public read and no unsigned address that
+  works.
+- The object's name is random and sits under a path scoped to your workspace.
+  Nothing about it is derivable from the run record, deliberately, which is why
+  the deletion sweep reads the bucket rather than working backwards from a run.
+- The only link that exists is signed and time limited, and it is handed to the
+  generative provider, not published.
+- An unredeemed handle leaves nothing behind. The object is swept at thirty
+  minutes like every other one.
+
+The [Privacy Policy](https://usegoro.ai/legal/privacy) section 4.16 is the
+authoritative version of this, thirty minutes included. That number is a
+published claim rather than an implementation detail, which is why the upload
+path was fitted inside it.
+
+## Errors
+
+Minting a handle can fail in two ways.
+
+| Status | `code` | When |
+| --- | --- | --- |
+| 400 | `validation_error` | `content_type` is missing, or is not one of the three accepted types |
+| 401 | `unauthorized` | Missing or invalid API key |
+
+Everything else surfaces on the run that redeems the handle, and all of it is
+checked before the hold is placed, so none of it charges you.
+
+| Status | `code` | When | What to do |
+| --- | --- | --- | --- |
+| 404 | `not_found` | The handle is unknown, belongs to another workspace, or the file has already been swept | Mint a fresh handle, upload, and run straight after. The three cases answer identically on purpose, so the error cannot be used to learn which handles exist |
+| 400 | `validation_error` | The file is not a JPEG, PNG or WEBP. Decided by reading the file's own leading bytes, so a correct `Content-Type` on something that is not an image does not get past it | Convert the file and upload it again |
+| 400 | `validation_error` | The file's real type disagrees with the `content_type` the handle was created for | The store serves the object as the type you declared, and a model given the wrong one fails the generation. Call `POST /v1/uploads` again with the type the file really is, and upload to that handle |
+| 400 | `validation_error` | The uploaded file is over 10 MB. The bucket refuses an oversized write in the first place, so this is the backstop rather than the usual answer | Compress or resize the file, upload it again, and use the handle from that upload |
+| 400 | `validation_error` | More than one of `image_handle`, `image_urls` and `image_base64` is present | Send exactly one |
+| 400 | `validation_error` | `image_base64` is not valid base64, or is over its limit | Almost always truncation rather than corruption, because the string passed through a context window. Do not shrink the image. Upload it and send the handle |
+
+<Note>
+  A handle that does not resolve is settled before the run is quoted, so a bad
+  handle costs nothing: no hold, no run row, nothing to release.
+</Note>
+
+## From MCP
+
+The MCP server exposes the same endpoint as `create_upload`. It takes
+`content_type`, returns the same handle and URL, and includes the exact `curl`
+to run next. It needs the `tools:read` scope rather than `tools:run`, because it
+spends nothing.
+
+The instruction for an agent is short enough to repeat: never read a file into
+the conversation in order to send it. Call `create_upload`, PUT the file with
+your own shell, then pass the handle to `run_tool`. Do not resize the image to
+make it fit, because fitting is not the problem the size was causing.
+
+## From the CLI
+
+`goro run` takes `--image` and does all three steps for you.
+
+```bash
+goro run -s video.grok \
+  -i '{"prompt":"The camera pushes in slowly as the steam rises."}' \
+  --image ./photo.jpg
+```
+
+The CLI reads the file's leading bytes to work out what it really is, asks for an
+upload URL for that type, PUTs the bytes and drops the handle into the input. You
+never spell `image_handle`, and a `.jpg` that is really a PNG still works. See
+[`goro run`](/cli/run#sending-a-local-image).
+
+<Card title="Spend it on a run" icon="play" href="/api/run">
+  What a run costs, what it returns, and how the hold settles.
+</Card>

@@ -33,6 +33,7 @@ difference was released back to your balance.
 | `-s`, `--slug` | The tool slug. Required. |
 | `-i`, `--input` | Input as a JSON object |
 | `-f`, `--file` | Read the input JSON from a file, or `-` for stdin |
+| `--image <file>` | Upload a local image and pass it as `image_handle`. For the video tools |
 | `--wait` | Poll until the run finishes |
 | `--timeout <seconds>` | How long `--wait` waits. Default 300. |
 
@@ -51,6 +52,35 @@ goro run -s maps.places -f query.json
 jq -n '{searchStringsArray:["dentist in Cluj"],maxCrawledPlacesPerSearch:20}' \
   | goro run -s maps.places -f -
 ```
+
+## Sending a local image
+
+The video tools animate a starting image. `--image` is the whole file intake in
+one flag:
+
+```bash
+goro run -s video.grok \
+  -i '{"prompt":"The camera pushes in slowly as the steam rises."}' \
+  --image ./photo.jpg
+```
+
+The CLI reads the file's leading bytes to work out what it really is, asks the
+gateway for a one-shot upload URL, PUTs the bytes straight to storage and puts
+the handle in your input. Nothing about encoding, handles or content types
+reaches you, and a `.jpg` that is really a PNG still works. JPEG, PNG and WEBP,
+up to 10 MB.
+
+The upload happens before the run, so a file the gateway will not take costs
+nothing: no hold, no run row. `--image` supplies the image on its own, so
+setting `image_handle`, `image_urls` or `image_base64` in the input as well is a
+usage error before anything is sent.
+
+<Note>
+  The two requests behind that one flag exist for agents rather than for you.
+  Tool arguments pass through a model's context window, so an image sent inline
+  as base64 costs a million tokens and gets truncated. [Uploads](/api/uploads)
+  explains the flow and the 10 and 30 minute clocks on an uploaded file.
+</Note>
 
 ## Slow calls
 
@@ -108,6 +138,7 @@ goro run -s web.search -i '{"queries":"ai agents"}' -o results.json
 | --- | --- | --- |
 | Input is not valid JSON | `Input is not valid JSON: ...` | `1` |
 | Input fails the tool's schema | `/queries: must have required property 'queries'` | `1` |
+| `--image` file is missing, empty, too large, or not a JPEG, PNG or WEBP | `--image file "./photo.jpg" is not a JPEG, PNG or WEBP image.` | `1` |
 | Key missing or revoked | `Unknown or revoked API key` | `2` |
 | Balance too low | `Insufficient funds: this run requires a hold of $0.0210.` plus the top-up URL | `3` |
 | Budget cap would be breached | `budget_exceeded` with the period and cap | `3` |

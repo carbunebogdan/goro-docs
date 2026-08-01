@@ -176,7 +176,7 @@ curl -X POST https://mcp.usegoro.ai/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
 ```
 
-You get the five tools described in the
+You get the six tools described in the
 [MCP quickstart](/guide/quickstart-mcp). `POST` carries every JSON-RPC message,
 and `DELETE` is accepted for clients that send it. `GET` answers `405`: this
 server offers no server-sent event stream, and conforming clients treat that as
@@ -207,5 +207,5 @@ else in Goro.
 | `rate_limited` | Too many registration or authorisation attempts from one IP |
 
 <Card title="What the tools do" icon="plug" href="/guide/quickstart-mcp">
-  The five tools your token unlocks.
+  The six tools your token unlocks.
 </Card>
