@@ -65,6 +65,7 @@
       "tools/social/tiktok-api",
       "tools/social/tiktok-profile",
       "tools/social/twitter-followers",
+      "tools/social/twitter-profile",
       "tools/social/twitter-search",
       "tools/social/youtube-comments",
       "tools/social/youtube-transcript",
