@@ -1,11 +1,11 @@
 ---
 title: "MiniMax H3 video"
-description: "Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio. Returns the URL of the generated MP4. That URL is temporary: kie.ai de"
+description: "Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio, or animate a still image you supply. Returns the URL of the generated "
 ---
 
-Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
 
-<Note>Use when you want the highest resolution in the catalog from a text prompt alone, with stereo sound and strong motion. A step up from seedance and grok, a step down in price from Veo. Billed per second of video you ask for.</Note>
+<Note>Use when you want the highest resolution in the catalog, with stereo sound and strong motion, from a text prompt or from one starting image. A step up from seedance and grok, a step down in price from Veo. An image costs the same per second as a text prompt here, and it can be sent as a link or inline as base64 so a local file never has to be published. Billed per second of video you ask for.</Note>
 
 ## Price
 
@@ -19,7 +19,9 @@ No call costs less than $0.0020 or more than $8.2125, the price of the largest r
 | --- | --- | --- | --- |
 | `prompt` | `string` | yes | What to film. Describe the subject, the action, the camera move, the lighting and the mood. |
 | `duration` | `integer` |  | Length of the generated video in seconds. This is what you are billed on, and it is the only field that changes the price. Defaults to `6`. |
+| `image_urls` | `array` |  | Optional. One public http or https link to the image the video should start from (JPEG, PNG or WEBP, up to 10 MB). Supplying it makes this an image-to-video call, at exactly the same price per second. The output URL of an image endpoint works directly. If the image is a local or private file, use image_base64 instead and it never has to be published anywhere. Send one of the two, never both. |
 | `aspect_ratio` | `21:9`, `16:9`, `4:3`, `1:1`, `3:4`, `9:16` |  | Shape of the output video. Defaults to `"16:9"`. |
+| `image_base64` | `string` |  | Optional. The starting image sent inline, as base64 of the file's own bytes. A data:image/png;base64, style prefix is accepted and its declared type is ignored. USE THIS FOR A LOCAL OR PRIVATE FILE: nothing is published. The bytes are uploaded to a private bucket that has no public read and no address that works unsigned, handed to the model as an unguessable link that expires in 30 minutes, and deleted on a schedule shortly after. Up to 3 MB of image, which is 4,194,304 base64 characters; anything larger belongs on a link. JPEG, PNG or WEBP, checked against the file's own leading bytes rather than against any type you declare. Send this or image_urls, never both. |
 
 <Note>
   These are all the fields this endpoint accepts. Anything else is rejected as

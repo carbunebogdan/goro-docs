@@ -29,8 +29,8 @@ Billing follows actual usage, so a call that returns fewer item_returneds costs 
 | `skipCommunity` | `boolean` |  |  Defaults to `true`. |
 | `skipUserPosts` | `boolean` |  |  Defaults to `false`. |
 | `searchComments` | `boolean` |  |  Defaults to `false`. |
+| `ignorestartUrls` | `boolean` |  | Forces search-only mode: startUrls are ignored even when present. Note the lowercase s in the middle, which is how the actor spells it. |
 | `fetchPostComments` | `boolean` |  | Also attach top-level comments to each post. One extra request per post and materially more billed items Defaults to `false`. |
-| `searchCommunities` | `boolean` |  |  Defaults to `false`. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the

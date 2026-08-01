@@ -1,11 +1,11 @@
 ---
 title: "Veo 3.1 video"
-description: "Generate an 8 second video with sound from a text prompt using Google Veo 3.1, at its Quality tier in 1080p. Returns the URL of the generated MP4. That URL is t"
+description: "Generate an 8 second video with sound using Google Veo 3.1 at its Quality tier in 1080p, from a text prompt or from a still image you supply. Returns the URL of"
 ---
 
-Generate an 8 second video with sound from a text prompt using Google Veo 3.1, at its Quality tier in 1080p. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Generate an 8 second video with sound using Google Veo 3.1 at its Quality tier in 1080p, from a text prompt or from a still image you supply. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
 
-<Note>Use when the video itself is the deliverable and it has to hold up: an ad, a hero clip, a pitch asset. The strongest model in the catalog for prompt following, physical realism and synchronised audio, and the most expensive by a wide margin. Text to video only, one flat price per video whatever you ask for.</Note>
+<Note>Use when the video itself is the deliverable and it has to hold up: an ad, a hero clip, a pitch asset. The strongest model in the catalog for prompt following, physical realism and synchronised audio, and the most expensive by a wide margin. Takes a text prompt or one starting image, at one flat price per video either way, so reach for video.grok first if you are only exploring. An image can be sent as a link or inline as base64, so a local file never has to be published.</Note>
 
 ## Price
 
@@ -19,8 +19,10 @@ There is no ceiling to read and no usage to reconcile afterwards. A call that fa
 | --- | --- | --- | --- |
 | `prompt` | `string` | yes | What to film. Describe the subject, the action, the camera move, the lighting and the mood; dialogue and sound effects can be described too and will be generated as audio. |
 | `duration` | `8` |  | Fixed at 8 seconds. This model is priced per video rather than per second, so a shorter clip would cost you the same. Defaults to `8`. |
+| `image_urls` | `array` |  | Optional. One public http or https link to the image the video should start from (JPEG, PNG or WEBP, up to 10 MB). Supplying it makes this an image-to-video call, at exactly the same price per second. The output URL of an image endpoint works directly. If the image is a local or private file, use image_base64 instead and it never has to be published anywhere. Send one of the two, never both. |
 | `resolution` | `1080p` |  | Fixed at 1080p. Each resolution is a different price upstream, and this endpoint quotes one exact price, so the others would get their own endpoints. Defaults to `"1080p"`. |
 | `aspect_ratio` | `16:9`, `9:16` |  | Shape of the output video. 16:9 for landscape, 9:16 for vertical. Defaults to `"16:9"`. |
+| `image_base64` | `string` |  | Optional. The starting image sent inline, as base64 of the file's own bytes. A data:image/png;base64, style prefix is accepted and its declared type is ignored. USE THIS FOR A LOCAL OR PRIVATE FILE: nothing is published. The bytes are uploaded to a private bucket that has no public read and no address that works unsigned, handed to the model as an unguessable link that expires in 30 minutes, and deleted on a schedule shortly after. Up to 3 MB of image, which is 4,194,304 base64 characters; anything larger belongs on a link. JPEG, PNG or WEBP, checked against the file's own leading bytes rather than against any type you declare. Send this or image_urls, never both. |
 
 <Note>
   These are all the fields this endpoint accepts. Anything else is rejected as

@@ -1,11 +1,11 @@
 ---
 title: "Kling 3.0 Turbo video"
-description: "Animate a still image into a video using Kling 3.0 Turbo, at 720p. You supply one image and a prompt describing how it should move. Returns the URL of the gener"
+description: "Animate a still image into a video using Kling 3.0 Turbo, at 720p. You supply one image and a prompt describing how it should move. The image can be a public li"
 ---
 
-Animate a still image into a video using Kling 3.0 Turbo, at 720p. You supply one image and a prompt describing how it should move. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Animate a still image into a video using Kling 3.0 Turbo, at 720p. You supply one image and a prompt describing how it should move. The image can be a public link or the file's own bytes sent inline, so a local or private image never has to be published anywhere. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
 
-<Note>Use when you already have the frame you want and need it to move: a product shot that pans, a generated image brought to life, a character that speaks. Pairs directly with the image endpoints. Billed per second of video you ask for.</Note>
+<Note>Use when you already have the frame you want and need it to move: a product shot that pans, a generated image brought to life, a character that speaks. Pairs directly with the image endpoints. The most expensive per second of the image-to-video models here, so reach for video.grok or video.seedance first unless you specifically want Kling's motion. Billed per second of video you ask for.</Note>
 
 ## Price
 
@@ -19,8 +19,9 @@ No call costs less than $0.0020 or more than $4.05, the price of the largest req
 | --- | --- | --- | --- |
 | `prompt` | `string` | yes | How the image should move. Describe the action, the camera move and any dialogue; Kling generates matching audio. |
 | `duration` | `integer` |  | Length of the generated video in seconds. This is what you are billed on, and it is the only field that changes the price. Defaults to `5`. |
-| `image_urls` | `array` | yes | One public http or https link to the starting image (jpeg or png, up to 10 MB). The output URL of an image endpoint works directly. |
+| `image_urls` | `array` |  | One public http or https link to the starting image (JPEG or PNG, up to 10 MB). The output URL of an image endpoint works directly. If the image is a local or private file, send image_base64 instead and it never has to be published anywhere. Exactly one of image_urls and image_base64 is required. |
 | `resolution` | `720p` |  | Fixed at 720p. Resolution changes the price per second, and this endpoint quotes one exact rate, so 1080p would get its own endpoint. Defaults to `"720p"`. |
+| `image_base64` | `string` |  | The starting image sent inline, as base64 of the file's own bytes. A data:image/png;base64, style prefix is accepted and its declared type is ignored. USE THIS FOR A LOCAL OR PRIVATE FILE: nothing is published. The bytes are uploaded to a private bucket that has no public read and no address that works unsigned, handed to the model as an unguessable link that expires in 30 minutes, and deleted on a schedule shortly after. Up to 3 MB of image, which is 4,194,304 base64 characters; anything larger belongs on a link. Kling accepts JPEG and PNG. Exactly one of image_urls and image_base64 is required. |
 
 <Note>
   These are all the fields this endpoint accepts. Anything else is rejected as
@@ -33,7 +34,7 @@ No call costs less than $0.0020 or more than $4.05, the price of the largest req
 curl -X POST https://api.usegoro.ai/v1/run \
   -H "Authorization: Bearer $GORO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"slug":"video.kling","input":{"prompt":"The camera pushes in slowly as steam rises from the cup and the light shifts towards evening.","image_urls":["https://example.com/media/product-shot.png"]}}'
+  -d '{"slug":"video.kling","input":{"prompt":"The camera pushes in slowly as steam rises from the cup and the light shifts towards evening."}}'
 ```
 
 ## Response

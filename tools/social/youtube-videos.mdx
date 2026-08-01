@@ -17,20 +17,20 @@ Billing follows actual usage, so a call that returns fewer results costs less. `
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
+| `is3D` | `boolean` |  | searchQueries filter: 3D videos only. |
+| `is4K` | `boolean` |  | searchQueries filter: 4K videos only. |
+| `isHD` | `boolean` |  | searchQueries filter: HD videos only. |
+| `hasCC` | `boolean` |  | searchQueries filter: Creative Commons licensed videos only. |
+| `is360` | `boolean` |  | searchQueries filter: 360 degree videos only. |
+| `isHDR` | `boolean` |  | searchQueries filter: HDR videos only. |
+| `isLive` | `boolean` |  | searchQueries filter: live videos only. |
+| `isVR180` | `boolean` |  | searchQueries filter: VR180 videos only. |
+| `isBought` | `boolean` |  | searchQueries filter: purchased videos only. |
 | `startUrls` | `array` |  | Direct YouTube video, channel, playlist, hashtag or results-page URLs |
 | `videoType` | `video`, `movie` |  |  |
 | `dateFilter` | `hour`, `today`, `week`, `month`, `year` |  | Upload-date filter for search. COSTS EXTRA on channel inputs: the date-range add-on is billed $0.001 per video on top of the result |
 | `maxResults` | `integer` |  | Maximum regular videos per search term or channel. Billed per video Defaults to `10`. |
-| `lengthFilter` | `under4`, `between420`, `plus20` |  |  |
-| `sortVideosBy` | `NEWEST`, `POPULAR`, `OLDEST` |  | Sort order on a channel's Videos, Shorts and Live tabs |
-| `sortingOrder` | `relevance`, `rating`, `date`, `views` |  |  |
-| `searchQueries` | `array` |  | Search terms, exactly as you would type them into YouTube's search bar. maxResults applies to EACH term |
-| `aiVideoSummary` | `boolean` |  | PAID ADD-ON. AI conceptual summary of each video, billed $0.01 per video on top of the $0.003 result Defaults to `false`. |
-| `oldestPostDate` | `string` |  | Only videos uploaded on or after this date, e.g. 2026-01-31, or a relative age like "7 days" |
-| `subtitlesFormat` | `srt`, `vtt`, `xml`, `plaintext` |  |  |
-| `maxResultStreams` | `integer` |  | Maximum live streams per search term or channel. Billed per video Defaults to `0`. |
-| `maxResultsShorts` | `integer` |  | Maximum Shorts per search term or channel. Billed per video Defaults to `0`. |
-| `downloadSubtitles` | `boolean` |  | Download the video's subtitles |
+| `hasLocation` | `boolean` |  | searchQueries filter: videos tagged with a location. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the

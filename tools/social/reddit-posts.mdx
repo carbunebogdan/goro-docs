@@ -24,13 +24,13 @@ Billing follows actual usage, so a call that returns fewer results costs less. `
 | `startUrls` | `array` |  | Reddit post, subreddit, user or search URLs. Leave empty when you use searches |
 | `includeNSFW` | `boolean` |  |  Defaults to `false`. |
 | `maxComments` | `integer` |  | Maximum comments taken from each post page. Set to 0 to skip comments. Comments count as billed items too Defaults to `10`. |
+| `searchMedia` | `boolean` |  | Also search media posts for the search terms. |
 | `searchPosts` | `boolean` |  |  Defaults to `true`. |
 | `searchUsers` | `boolean` |  |  Defaults to `false`. |
 | `maxPostCount` | `integer` |  | Maximum posts taken from each posts page or community page Defaults to `10`. |
+| `maxUserCount` | `integer` |  | Pages of user results to scrape. The actor takes 2 when you leave it out. Each page is more billed items. |
 | `skipComments` | `boolean` |  | Do not scrape comments while going through posts Defaults to `false`. |
 | `postDateLimit` | `string` |  | Only posts published after this date |
-| `skipCommunity` | `boolean` |  |  Defaults to `false`. |
-| `skipUserPosts` | `boolean` |  |  Defaults to `false`. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the

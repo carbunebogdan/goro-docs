@@ -17,13 +17,20 @@ Billing follows actual usage, so a call that returns fewer places costs less. `d
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
+| `city` | `string` |  | City to search in, e.g. Pittsburgh. Do not put the state or country here, they have their own fields. |
+| `state` | `string` |  | State or region. Mostly useful for US addresses. |
+| `county` | `string` |  | County, regional district or departement, depending on the country. |
+| `website` | `allPlaces`, `withWebsite`, `withoutWebsite` |  | Keep only places that have a website, or only those that do not. COSTS EXTRA: $0.001 per place, as one search filter. |
 | `language` | `string` |  |  Defaults to `"en"`. |
+| `placeIds` | `array` |  | Google place IDs, in the form ChIJreV9aqYWdkgROM_boL6YbwA. One place, and one billed place, per ID. |
+| `maxImages` | `integer` |  | Additional images per place. 0 returns none, 99999 returns all. COSTS EXTRA: $0.0005 per image, plus $0.002 per place for the detail page images force open. |
+| `startUrls` | `array` |  | Google Maps URLs to scrape directly instead of searching. Place, search-results, cid and goo.gl/maps links all work. Each entry is an object with a url. Max 300 places per search URL. |
+| `maxReviews` | `integer` |  | Reviews per place. 0 returns none, 99999 returns all. PERSONAL DATA: each review carries its author unless you set scrapeReviewsPersonalData false. COSTS EXTRA: $0.0005 per review, plus $0.002 per place for the detail page reviews force open. A large number here cannot push the bill past this call's ceiling, it just means fewer places come back. |
+| `postalCode` | `string` |  | One postal code to search in. Combine it with countryCode, never with city. |
+| `countryCode` | `string` |  | Two-letter country to search in, e.g. us, gb, de. These five location fields are more reliable than packing everything into locationQuery. |
+| `reviewsSort` | `newest`, `mostRelevant`, `highestRanking`, `lowestRanking` |  | Order reviews are collected in. The actor uses newest when you leave it out. |
+| `maxQuestions` | `integer` |  | Questions and answers per place. 0 returns only the first pair, 999 returns all. PERSONAL DATA: the answers carry the asker's and the answerer's names. COSTS EXTRA: $0.002 per place. |
 | `locationQuery` | `string` |  | Where to search, e.g. "Berlin, Germany" |
-| `scrapeContacts` | `boolean` |  | Also extract contact details. Billed extra at $0.002 per place. Defaults to `false`. |
-| `skipClosedPlaces` | `boolean` |  |  Defaults to `false`. |
-| `placeMinimumStars` | ``, `two`, `twoAndHalf`, `three`, `threeAndHalf`, `four`, `fourAndHalf` |  |  |
-| `searchStringsArray` | `array` | yes | What to search for, e.g. "coffee shop" or a category |
-| `maxCrawledPlacesPerSearch` | `integer` |  | Maximum places per search string Defaults to `20`. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the

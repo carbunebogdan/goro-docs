@@ -20,10 +20,17 @@ Billing follows actual usage, so a call that returns fewer results costs less. `
 | `end` | `string` |  | Only tweets before this date, YYYY-MM-DD |
 | `sort` | `Top`, `Latest` |  | Rank by relevance (Top) or recency (Latest) Defaults to `"Latest"`. |
 | `start` | `string` |  | Only tweets after this date, YYYY-MM-DD |
+| `author` | `string` |  | Only tweets sent by this handle. PERSONAL DATA: this points the search at one named person. |
+| `geocode` | `string` |  | Only tweets from users inside a radius of a coordinate, as latitude,longitude,radius, e.g. 37.781,-122.398,1mi. |
 | `maxItems` | `integer` |  | Maximum tweets to return across all search terms Defaults to `20`. |
+| `inReplyTo` | `string` |  | Only tweets that are replies to this handle. |
+| `onlyImage` | `boolean` |  | Only tweets containing an image. |
+| `onlyQuote` | `boolean` |  | Only quote tweets. |
+| `onlyVideo` | `boolean` |  | Only tweets containing video. |
+| `startUrls` | `array` |  | X URLs to scrape directly instead of searching. Tweet, profile, search and list URLs all work. |
+| `mentioning` | `string` |  | Only tweets mentioning this handle. |
 | `searchTerms` | `array` | yes | Search queries. Supports X advanced search syntax. |
-| `tweetLanguage` | `string` |  | Two-letter language code to restrict results |
-| `onlyVerifiedUsers` | `boolean` |  |  |
+| `withinRadius` | `string` |  | Radius around geotaggedNear, e.g. 15km. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the

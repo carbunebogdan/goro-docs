@@ -19,12 +19,21 @@ Billing follows actual usage, so a call that returns fewer pages costs less. `di
 | --- | --- | --- | --- |
 | `site` | `string` |  | Limit to one site, e.g. example.com |
 | `queries` | `string` | yes | Search term(s), or Google Search URLs. Newline-separate for multiple. Supports advanced operators like site: and OR. |
+| `saveHtml` | `boolean` |  | Attach each results page's raw HTML to its item as html. Useful when you want to parse the page yourself, and it makes the response very large. |
+| `afterDate` | `string` |  | Only results from after this date. Same formats as beforeDate. Do not combine with quickDateRange. |
+| `fileTypes` | `array` |  | Only results of these file types, the filetype: operator, e.g. pdf, xlsx, csv. Several types are combined with OR. |
+| `aiOverview` | `object` |  | PAID ADD-ON. Capture Google's AI Overview in full for each query. Set scrapeFullAiOverview true inside this object. Billed $0.002 per query where an overview is actually captured, against $0.0025 for the search page itself. |
+| `aiOverview.scrapeFullAiOverview` | `boolean` |  |  |
+| `beforeDate` | `string` |  | Only results from before this date. Absolute (2026-05-03, read as UTC) or relative (8 days, 3 months). Do not combine with quickDateRange. |
+| `wordsInUrl` | `array` |  | Words that must appear in the URL, the inurl: operator. |
 | `countryCode` | `string` |  | Two-letter country code, sets the Google domain (e.g. es for google.es) |
+| `wordsInText` | `array` |  | Words that must appear in the page text, the intext: operator. |
+| `aiModeSearch` | `object` |  | PAID ADD-ON. Also answer each query from Google AI Mode, the conversational search surface, with cited sources. Set enableAiMode true inside this object. Billed $0.005 per answer returned, twice the price of the search page. |
+| `aiModeSearch.enableAiMode` | `boolean` |  |  |
+| `geminiSearch` | `object` |  | PAID ADD-ON. Also answer each query from Google Gemini. Set enableGemini true inside this object. Billed $0.005 per answer returned. |
+| `geminiSearch.enableGemini` | `boolean` |  |  |
+| `includeIcons` | `boolean` |  | Include base64 icon image data on organic, paid and suggested results. Large. |
 | `languageCode` | `string` |  | Interface language (hl) |
-| `mobileResults` | `boolean` |  |  Defaults to `false`. |
-| `searchLanguage` | `string` |  | Restrict results to this language (lr) |
-| `forceExactMatch` | `boolean` |  |  Defaults to `false`. |
-| `maxPagesPerQuery` | `integer` |  | Result pages per query, roughly 10 results each. Billing is per page. Defaults to `1`. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the

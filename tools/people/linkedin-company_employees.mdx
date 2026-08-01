@@ -27,10 +27,10 @@ Billing follows actual usage, so a call that returns fewer profiles costs less. 
 | `industryIds` | `array` |  | LinkedIn industry ID filter, for example "4" for Software Development. |
 | `searchQuery` | `string` |  | Fuzzy search within the company's employees. |
 | `pastJobTitles` | `array` |  | Past job title filter. |
+| `excludeSchools` | `array` |  | Drop profiles who attended these schools, for example Stanford University. |
 | `companyBatchMode` | `all_at_once`, `one_by_one` |  | How multiple companies are queried. one_by_one runs a separate query per company and therefore pays the $0.02 actor-start fee once PER COMPANY, so it is the single most expensive flag on this endpoint. Defaults to `"all_at_once"`. |
 | `companyHeadcount` | `array` |  | Current employer headcount band, A self-employed through I 10001+. |
 | `excludeLocations` | `array` |  | Locations to exclude. |
-| `seniorityLevelIds` | `array` |  | Seniority filter. 120 Senior, 220 Director, 300 Vice President, 310 CXO, 320 Owner or Partner. |
 
 <Note>
   Goro forwards your input to the underlying tool unchanged, so any field the
