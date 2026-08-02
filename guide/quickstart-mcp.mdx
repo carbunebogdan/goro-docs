@@ -34,7 +34,7 @@ both:
 
 | Scope | Grants |
 | --- | --- |
-| `tools:read` | `discover_tools`, `inspect_tool`, `create_upload`, `get_run`, `wallet_balance` |
+| `tools:read` | `discover_tools`, `inspect_tool`, `create_upload`, `get_run`, `wallet_balance`, `remember_tool_choice`, `forget_tool_choice` |
 | `tools:run` | `run_tool` |
 
 Access tokens last an hour and the client refreshes them silently. Refresh
@@ -46,16 +46,18 @@ tokens last 30 days and rotate on every use.
   [OAuth quickstart](/guide/quickstart-oauth).
 </Note>
 
-## 3. The six tools
+## 3. The eight tools
 
 | Tool | Scope | When the agent calls it |
 | --- | --- | --- |
 | `discover_tools` | `tools:read` | First, whenever the task needs live or external data and the exact slug is unknown |
 | `inspect_tool` | `tools:read` | Before running a tool whose input shape is not already known |
-| `create_upload` | `tools:read` | Before `run_tool`, whenever the tool needs a file the agent holds locally. It spends nothing |
+| `create_upload` | `tools:read` | Before `run_tool`, whenever the tool needs a file. It spends nothing |
 | `run_tool` | `tools:run` | To actually execute a tool. This spends money |
 | `get_run` | `tools:read` | To poll a `run_tool` call that came back with a `run_id` |
 | `wallet_balance` | `tools:read` | To check available funds, or after an `insufficient_funds` error |
+| `remember_tool_choice` | `tools:read` | Only when you explicitly say a choice should stick. It spends nothing |
+| `forget_tool_choice` | `tools:read` | When you want to be offered the choice again |
 
 That is the complete list. There is no per-tool MCP surface: the 55 catalog
 tools are reached through `run_tool` by slug, which is what keeps the tool list
@@ -65,8 +67,46 @@ small enough for an agent to reason about.
 
 `discover_tools` takes a plain-language `query` and an optional `limit`
 (default 5, maximum 20). Each result carries a slug, guidance on when to use
-it, its price and a fillable sample input, so the agent can often skip
-`inspect_tool` and go straight to `run_tool`.
+it, its price and a fillable sample input, so the agent can usually skip
+`inspect_tool`.
+
+## Who picks the tool
+
+You do. Goro never chooses one: `run_tool` takes an exact slug, so when several
+tools can do a job, the choice happens in the agent.
+
+By default it is not allowed to make that choice quietly. `discover_tools`
+returns a `choose` field telling the agent to show you the candidates with
+their prices and ask which you want. That matters because the prices are not
+close: five tools can make you an image, from $0.01 to $0.27 a call, and being
+charged for one you were never shown is not a good surprise.
+
+Three things skip the question:
+
+- **You named the tool.** "Use nano banana pro for this" is already an answer.
+- **Only one tool matches.** Nothing to choose between, though the agent should
+  still tell you what it is about to spend.
+- **You said to always use one.** Tell the agent "always use X for images",
+  "remember that", or "stop asking me", and it calls `remember_tool_choice`.
+  From then on `discover_tools` returns `your_preference` for that category and
+  the agent uses it without asking.
+
+A preference is saved **only when you ask for one**. Picking a tool for a single
+job is not a standing instruction, and treating it as one would mean you are
+never offered the cheaper option again. One saved choice per category (image,
+video, voice, search, social, maps, people, ecommerce). Say you want to pick
+again and the agent calls `forget_tool_choice`.
+
+<Note>
+  This is an instruction to the agent, not a lock. Goro can tell a client to ask
+  you and can refuse to guess on your behalf, but it cannot reach into the
+  client and force a prompt. A well-behaved agent follows it; treat
+  `remember_tool_choice` as the reliable control, since that one is enforced
+  server-side.
+</Note>
+
+The HTTP API and the CLI are unaffected: both already require you to name a
+slug, so there is nothing for anyone to pick.
 
 `run_tool` blocks for up to about 25 seconds. A fast tool returns its rows in
 that same response. A slower one returns a `run_id` and an explicit
