@@ -87,6 +87,7 @@ default. The rows are in `output`, abridged to one row here.
 | `status` | string | One of `QUEUED`, `RUNNING`, `COMPLETED`, `FAILED`, `STOPPED`, `TIMED_OUT` |
 | `output` | array or null | The tool's rows, untouched |
 | `output_count` | integer or null | How many rows the run produced |
+| `output_downloads` | array | Present only when the run produced FILES. One `{index, filename, url}` per file, each a Goro link that downloads it. See [Downloads](/api/downloads) |
 | `quoted_cost_micro`, `quoted_cost_usd` | integer, string | What was held before the run |
 | `cost_micro`, `cost_usd` | integer or null, string or null | What was actually charged. Null until the run settles |
 | `error` | object or null | `{code, message}` when something went wrong |

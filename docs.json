@@ -45,6 +45,7 @@
           "api/inspect",
           "api/run",
           "api/uploads",
+          "api/downloads",
           "api/runs",
           "api/wallet"
         ]

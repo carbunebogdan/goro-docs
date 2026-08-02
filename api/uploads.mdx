@@ -23,6 +23,25 @@ agent downscales the user's photo and tries again with a smaller one.
 A handle is about thirty characters. The bytes go from you straight to storage,
 so they never pass through the model and never pass through Goro's API either.
 
+## Two roads, and how to pick
+
+The response carries two ways to get the bytes in. They write the same object to
+the same path and produce the same handle, so nothing downstream can tell them
+apart. Which one is right depends on one question: can you actually reach the
+file?
+
+| | `upload_page_url` | `upload_url` |
+| --- | --- | --- |
+| Who moves the bytes | The user, from their own browser | You, with a PUT |
+| Needs a shell | No | Yes |
+| Needs the file to be on your machine | No | Yes |
+| Good for | Phones, chat clients, anything sandboxed, and any case where the file is somewhere you cannot read | Scripts, CLIs, agents with a working shell and a local file |
+
+If you are an agent without a shell, send the user `upload_page_url` and wait
+for them to say it is done. Do not fall back to `image_base64`: a large inline
+payload is the failure this whole mechanism exists to prevent, and some clients
+refuse to render a tool call that size without reporting an error at all.
+
 ## The three steps
 
 ### 1. Ask for somewhere to put the file
@@ -46,15 +65,18 @@ disagrees is refused.
 ```json
 {
   "handle": "upl_9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg",
+  "upload_page_url": "https://upload.usegoro.ai/eyJlIjoxNzg1...Kd2Qh8Lm",
   "upload_url": "https://<storage-host>/object/upload/sign/input-image/0f1e2d3c/9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg?token=eyJhbGciOi...",
   "upload_method": "PUT",
   "upload_headers": { "Content-Type": "image/jpeg" },
   "max_bytes": 10485760,
   "accepted_content_types": ["image/jpeg", "image/png", "image/webp"],
   "usable_for_seconds": 600,
+  "page_usable_for_seconds": 3600,
   "deleted_after_seconds": 1800,
   "next": {
-    "upload": "curl -X PUT --data-binary @<file> -H \"Content-Type: image/jpeg\" \"<upload_url>\"",
+    "upload_yourself": "curl -X PUT --data-binary @<file> -H \"Content-Type: image/jpeg\" \"<upload_url>\"",
+    "or_ask_the_user": "Send them upload_page_url and wait until they say it is uploaded.",
     "then": "Send image_handle: \"upl_9Qw3mJf2Lk7Rn0Bd4Ts1Vy.jpg\" in the run input. Do not send image_base64 as well."
   },
   "note": "Upload the file, then run within 10 minutes. The file is private (no public read, no unsigned address that works) and is deleted 30 minutes after it lands, so get the handle immediately before the run rather than in advance."
@@ -64,12 +86,14 @@ disagrees is refused.
 | Field | Type | Notes |
 | --- | --- | --- |
 | `handle` | string | What you pass as `image_handle` in the run input |
-| `upload_url` | string | Where to PUT the file. Signed, single use, and it addresses the storage bucket rather than Goro |
+| `upload_page_url` | string | A page a person opens to pick the file. Needs no shell, no Goro account and no sign-in |
+| `upload_url` | string | Where to PUT the file yourself. Signed, single use, and it addresses the storage bucket rather than Goro |
 | `upload_method` | string | `PUT` |
 | `upload_headers` | object | The headers to send with the PUT. Today only `Content-Type`, set to the type you declared |
 | `max_bytes` | integer | 10485760, ten megabytes |
 | `accepted_content_types` | array | The three types `content_type` accepts |
 | `usable_for_seconds` | integer | 600. How long after the upload finishes the handle can still be redeemed |
+| `page_usable_for_seconds` | integer | 3600. How long `upload_page_url` stays openable |
 | `deleted_after_seconds` | integer | 1800. How long after the file lands it is deleted |
 | `next`, `note` | object, string | The next command and the rule in a sentence, for a model reading the response |
 
@@ -77,7 +101,14 @@ Values are illustrative. Treat `upload_url` as opaque: it addresses the storage
 provider rather than `api.usegoro.ai`, and it carries its own credential in the
 query string.
 
-### 2. PUT the file
+Both `upload_page_url` and `upload_url` are capability URLs. Anyone holding one
+can write that one file to that one path until it expires, so treat them the way
+you would treat any signed link: hand them to the person they were minted for
+and nobody else.
+
+### 2. Either PUT the file, or send the user the page
+
+If you have a shell and the file is on this machine:
 
 ```bash
 curl -X PUT --data-binary @photo.jpg \
@@ -89,6 +120,23 @@ Send no `Authorization` header with it. The URL is the credential, it is good
 for one write to one path, and it points at the private bucket directly. That is
 the whole point of the two requests: the file never enters a Goro serverless
 function, never meets a request body limit, and never enters the model.
+
+Otherwise, give the user `upload_page_url`:
+
+> Open this link and choose the photo: `https://upload.usegoro.ai/…`
+> Tell me when it's uploaded.
+
+They get a one-field page that checks the file is really the type you asked for
+and sends it from their browser straight to the same bucket. Nothing is
+installed, nothing is signed into, and the bytes never travel through you. Wait
+for them to confirm before step 3: the handle does not resolve until the file
+has actually landed.
+
+<Note>
+  The page checks the file's leading bytes before sending, so a user who picks
+  an iPhone HEIC when you asked for `image/jpeg` is told immediately, on the
+  page, instead of failing minutes later inside a paid run.
+</Note>
 
 ### 3. Run the tool with the handle
 
@@ -118,14 +166,17 @@ would mean animating an image you did not mean and charging you for it.
 
 | Field | Use it when | Ceiling |
 | --- | --- | --- |
-| `image_handle` | Any file you hold locally or privately. This is the road most callers should take | 10 MB |
+| `image_handle` | Any file held locally or privately, whether you PUT it yourself or the user uploads it through the page. This is the road most callers should take | 10 MB |
 | `image_urls` | The image is already on a public https link, including the output URL of an image endpoint | 10 MB |
-| `image_base64` | The image is genuinely small, or you have no shell to run the PUT with | 3 MB |
+| `image_base64` | The image is genuinely small AND neither road above is available | 3 MB |
 
-`image_base64` is not going away. It is the right answer for a small file and
-for a caller that cannot make a second request. It is the wrong answer for a
-photograph, and the failure it produces is silent enough to be worth naming: a
-truncated base64 string decodes to fewer, wrong bytes rather than to an error.
+`image_base64` is not going away, but "I have no shell" stopped being a reason
+to use it: that is what `upload_page_url` is for. It remains the right answer
+for a small file when there is no user to ask either. It is the wrong answer for
+a photograph, and the failure it produces is silent enough to be worth naming
+twice: a truncated base64 string decodes to fewer, wrong bytes rather than to an
+error, and some clients will not even render a tool call that large, which looks
+like the request vanishing.
 
 ## Why the ceilings differ
 
@@ -144,8 +195,14 @@ that transport at all, which is the second reason it exists.
 
 | Clock | Value | What it governs |
 | --- | --- | --- |
+| Page | 60 minutes | How long `upload_page_url` can still be opened |
 | Redemption | 10 minutes | How long after the upload finishes the handle can still be used in a run |
 | Retention | 30 minutes | How long the file exists at all, counted from when it lands |
+
+The page clock extends nothing. Retention is measured from the moment the bytes
+land, so a link opened at minute 59 produces a file deleted 30 minutes after
+that, exactly like one opened immediately. What the hour buys is the gap between
+an agent posting a link and a person picking up their phone.
 
 The second number did not change when uploads were added. The ten minutes are
 subtracted from the thirty rather than added to them: the signed link handed to
@@ -206,14 +263,16 @@ checked before the hold is placed, so none of it charges you.
 ## From MCP
 
 The MCP server exposes the same endpoint as `create_upload`. It takes
-`content_type`, returns the same handle and URL, and includes the exact `curl`
-to run next. It needs the `tools:read` scope rather than `tools:run`, because it
-spends nothing.
+`content_type` and returns the same handle, the same page link and the same
+upload URL, with the exact `curl` to run next. It needs the `tools:read` scope
+rather than `tools:run`, because it spends nothing.
 
 The instruction for an agent is short enough to repeat: never read a file into
-the conversation in order to send it. Call `create_upload`, PUT the file with
-your own shell, then pass the handle to `run_tool`. Do not resize the image to
-make it fit, because fitting is not the problem the size was causing.
+the conversation in order to send it. Call `create_upload`. If you have a shell
+and the file is on that machine, PUT it. Otherwise give the user
+`upload_page_url` and wait for them. Either way, pass the handle to `run_tool`.
+Do not resize the image to make it fit, because fitting is not the problem the
+size was causing.
 
 ## From the CLI
 

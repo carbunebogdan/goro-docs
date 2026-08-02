@@ -1,0 +1,132 @@
+---
+title: "Downloads"
+description: "Every generated file gets a Goro link that saves it. One address, one expiry, and nothing re-hosted."
+---
+
+```
+GET https://files.usegoro.ai/<token>
+```
+
+Runs that produce files — video, images, generated speech — come back with an
+`output_downloads` array alongside `output`. Each entry is a link on Goro's own
+domain that downloads the file when opened.
+
+No API key. The token is the authorization, which is what makes these links
+something you can hand to a person, put in an email, or open on a phone that has
+never signed in to Goro.
+
+## What a run returns
+
+```json
+{
+  "run_id": "3f2a...",
+  "endpoint": "video.grok",
+  "status": "COMPLETED",
+  "output": ["https://<provider-cdn>/tasks/9f2/clip.mp4"],
+  "output_count": 1,
+  "output_downloads": [
+    {
+      "index": 0,
+      "filename": "clip.mp4",
+      "url": "https://files.usegoro.ai/eyJlIjoxNzg1...Kd2Qh8Lm"
+    }
+  ],
+  "cost_usd": "$0.40"
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `index` | integer | Which item of `output` this is. Stays the index of the original array, so it lines up even when some items are not files |
+| `filename` | string | What the browser will save it as |
+| `url` | string | The download link. Opening it saves the file |
+
+`output_downloads` is absent entirely when a run produced no files, which is
+most of them. An endpoint that returns scraped rows has exactly the result shape
+it always had.
+
+The provider's own URL stays in `output`, untouched. Use it when you want to
+stream the file into a video player or fetch it yourself; use the download link
+when a person is going to click it.
+
+## Why not just use the provider's URL
+
+Three things the raw link cannot do.
+
+**It is not our address.** It is a hostname nobody recognises, on a CDN we do
+not control. If Goro changes providers, every link already handed out is a dead
+end. A `files.usegoro.ai` link keeps working across that.
+
+**It does not reliably download.** Whether clicking a URL saves a file or opens
+a player is decided by the `Content-Disposition` header, which is set by the
+server holding the file. On a link this route serves, that header is ours.
+
+**It expires on somebody else's schedule and says nothing when it does.** A
+Goro link expires on our clock and, when the file really is gone, answers with a
+sentence explaining which retention ran out.
+
+## Nothing is re-hosted
+
+The file stays exactly where the provider put it. Goro does not copy generated
+media into its own storage, and this route did not change that: it resolves the
+token to a run you own, reads the URL that run already recorded, and either
+redirects you to it or streams it through with a download header attached.
+
+That is a deliberate limit rather than an optimisation. Re-hosting output would
+mean a new bucket, a new retention clock and a standing store of customer files
+that the [Privacy Policy](https://usegoro.ai/legal/privacy) would have to start
+describing. It does not exist, so there is nothing to describe.
+
+## Playing instead of saving
+
+Add `?inline=1` to get a redirect to the file where it actually lives, with no
+download header and Goro out of the path:
+
+```
+https://files.usegoro.ai/<token>?inline=1
+```
+
+Use it to embed a video, to stream rather than save, or for a very large file on
+a slow connection where a proxied download might not finish.
+
+## How long a link lasts
+
+Seven days from when the run returned it, and shorter in practice, because the
+file itself has to still exist:
+
+| What | How long |
+| --- | --- |
+| The download link | 7 days |
+| Generated video and images, at the provider | 14 days |
+| Generated speech, in Goro's storage | 24 hours |
+| A run's cached output, in Goro's database | 24 hours, after which the provider's copy is re-read |
+
+The practical rule: collect what you need soon after the run. A link that
+outlives its file answers `410` with an explanation rather than a broken
+download.
+
+## Errors
+
+These are HTML pages, not JSON envelopes, because a person clicked the link.
+
+| Status | When |
+| --- | --- |
+| 404 | The token is expired, malformed or was tampered with, or the run no longer exists. The cases answer identically so the error cannot be used to learn which links are real |
+| 410 | The file has aged out at the provider, or that output item is not a file |
+| 502 | The provider holding the file did not answer. Retrying usually works |
+
+## Security
+
+A download link is a capability: whoever holds it can fetch that one file until
+it expires. Treat it the way you would treat any signed URL.
+
+- The token names a run id and an index, never a URL, so it cannot be edited to
+  point Goro at an address it did not produce.
+- It is signed, so a token built by hand does not verify.
+- It resolves only inside the workspace that owns the run.
+- It is scoped to a single output item, not to the run.
+- Responses are sent `private, no-store`, so nothing in between keeps a copy.
+
+<Card title="Send a file the other way" icon="upload" href="/api/uploads">
+  Uploads, handles, and the page a user opens to hand your agent a file.
+</Card>
