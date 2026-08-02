@@ -1,0 +1,50 @@
+---
+title: "Nano Banana Pro image"
+description: "Generate an original image from a text prompt, or EDIT images you supply, using Google Nano Banana Pro at 2K resolution. Send image_handles, image_urls or image"
+---
+
+Generate an original image from a text prompt, or EDIT images you supply, using Google Nano Banana Pro at 2K resolution. Send image_handles, image_urls or image_base64 to edit, restyle or combine up to 8 reference images; send none and it generates from the prompt alone. Editing costs exactly what generating costs and the extra references are free. The most capable image model in the catalog, and priced accordingly. Returns the URL of the generated image. Those URLs are temporary: kie.ai deletes generated media after 14 days, so download anything you need to keep.
+
+<Note>Use when the image itself is the deliverable and it has to hold up: a campaign asset, a page hero, a composite that has to look real, dense or fiddly text rendered inside the image, an edit that has to preserve a face or a product exactly. Half again the price of image.nano_banana, which is the one to reach for on volume work and drafts. One image out per call.</Note>
+
+## Price
+
+**$0.27 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+
+There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to make. Generating: describe subject, composition, style, lighting and mood; the more specific, the closer the result. Editing: describe the CHANGE rather than the whole picture ("replace the background with a sunlit kitchen, keep the product exactly as it is"). With several references you can refer to them in order, e.g. "put the product from the first image onto the table in the second". |
+| `image_urls` | `array` |  | Optional. Public http or https links to the images to edit, combine or use as reference (JPEG, PNG or WEBP, up to 10 MB each, up to 8 of them). Use this when the images are ALREADY published somewhere; the output URL of any image endpoint works directly, which is what makes generate-then-edit, and merging two generations, a two-call sequence with nothing to upload in between. Nothing is copied or re-hosted, we pass the links on. For files that are not already public, use image_handles instead and they never have to be published anywhere. Send one of the three, never two. |
+| `resolution` | `2K` |  | Fixed at 2K. Resolution is the only thing that changes what this model costs, and this endpoint quotes one exact price, so 4K would get its own endpoint. 1K costs the same as 2K upstream, so there is nothing to save by asking for less. Defaults to `"2K"`. |
+| `aspect_ratio` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` |  | Shape of the generated image. Does not change the price. Defaults to `"1:1"`. |
+| `image_base64` | `string` |  | Optional, and only for ONE small image (under 3 MB) when you cannot run a shell command AND cannot ask the user to open a link. The image inline, as base64 of the file's own bytes; a data:image/png;base64, prefix is accepted and its declared type ignored. Only one image can arrive this way, because every inline image shares one request body. Understand the cost before choosing it: on an MCP call the request IS the tool arguments, which pass through the model's context window. A 3 MB photograph is 4 MB of base64, on the order of a million tokens, and in practice it is truncated and the run fails looking like file corruption. Do not downscale an image to fit here: use image_handles, which takes up to 10 MB per file and keeps them out of the conversation entirely. JPEG, PNG or WEBP, checked against the file's own leading bytes rather than against any type you declare. Send one of the three, never two. |
+| `image_handles` | `array` |  | Optional, and the RIGHT WAY to send local or private images to edit. Upload each file first with POST /v1/uploads (or the create_upload MCP tool, which also hands back a link a PERSON can open to pick the file on their own device, for when you have no shell) and put the short handles it returns here, in order. The files go straight from you to a private bucket: they never pass through a tool call, so they never pass through a model's context window, and up to 10 MB each is fine. Nothing is published. A handle is usable for 10 minutes after its upload lands and the file is deleted 30 minutes after that. Supplying any image makes this an edit rather than a generation, at exactly the same price. Up to 8 images, and the extras are free. Send one of image_handles, image_urls and image_base64, never two. |
+| `output_format` | `png`, `jpg` |  | File type of the returned image. png keeps hard edges and text crisp; jpg is smaller. Does not change the price. Defaults to `"png"`. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"image.nano_banana_pro","input":{"prompt":"example"}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-image-1.png"
+]
+```

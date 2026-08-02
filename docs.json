@@ -123,6 +123,7 @@
             "pages": [
               "tools/image/image-grok",
               "tools/image/image-nano_banana",
+              "tools/image/image-nano_banana_pro",
               "tools/image/image-seedream",
               "tools/image/image-z_image"
             ]
