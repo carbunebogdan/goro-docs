@@ -133,9 +133,10 @@ Saving a card does not enable this. You turn it on explicitly.
 ## Reading prices from the API
 
 `discover` and `inspect` return a `price` object per tool. Read `type` first,
-because it decides which of the other fields are there: `cost_plus` and
-`metered` carry a ceiling in `max_usd`, `per_call` carries a fixed
-`base_usd` and no ceiling at all.
+because it decides which of the other fields are there: `usage_based` and
+`metered` carry a ceiling in `max_usd`, `per_call` carries a fixed `base_usd`
+and no ceiling at all, and `per_call_variant` carries a `variants` list, one
+exact price per value of the input named in `selector`.
 
 `billed_on_actual_usage` is the field to branch on. Where it is `true`, the
 total depends on the call and `max_usd` is a maximum rather than a price. Where

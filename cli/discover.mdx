@@ -67,8 +67,7 @@ goro discover -q "scrape a google maps place" --limit 2 -j
       "category": "maps",
       "when_to_use": "Use when you need local businesses or points of interest...",
       "price": {
-        "type": "cost_plus",
-        "markup": 3,
+        "type": "usage_based",
         "min_micro": 2000,
         "min_usd": "$0.0020",
         "max_micro": 6000000,
@@ -77,7 +76,7 @@ goro discover -q "scrape a google maps place" --limit 2 -j
         "per_unit_micro": 9000,
         "per_unit_usd": "$0.0090",
         "unit_label": "place",
-        "summary": "$0.0090 per place, billed on actual usage (3x provider cost, minimum $0.0020), up to $6.00 per call"
+        "summary": "$0.0090 per place, billed on actual usage (minimum $0.0020 per call), up to $6.00 per call"
       },
       "sample_input": { "language": "en", "scrapeContacts": false }
     }

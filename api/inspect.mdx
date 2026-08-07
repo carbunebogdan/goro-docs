@@ -55,8 +55,7 @@ curl -X POST https://api.usegoro.ai/v1/inspect \
     "website": "https://origocoffee.ro"
   },
   "price": {
-    "type": "cost_plus",
-    "markup": 3,
+    "type": "usage_based",
     "min_micro": 2000,
     "min_usd": "$0.0020",
     "max_micro": 6000000,
@@ -65,7 +64,7 @@ curl -X POST https://api.usegoro.ai/v1/inspect \
     "per_unit_micro": 9000,
     "per_unit_usd": "$0.0090",
     "unit_label": "place",
-    "summary": "$0.0090 per place, billed on actual usage (3x provider cost, minimum $0.0020), up to $6.00 per call"
+    "summary": "$0.0090 per place, billed on actual usage (minimum $0.0020 per call), up to $6.00 per call"
   }
 }
 ```

@@ -91,8 +91,9 @@ synchronous window, you get the run id back instead of the rows:
 RUNNING  web.search  df7b5519-ccd3-448d-b5dc-01a4273e0a6a
   held    $0.0210
   price   up to $1.00 for a single call, and never more than that.
-          Billed on actual usage, at 3x what the provider charged us, minimum $0.0020.
-          The hold scales with what you request. You are charged what the call cost.
+          Billed on actual usage, minimum $0.0020.
+          The hold scales with what you request. You are charged for what the call
+          actually did, and nothing if it cost nothing.
 
   Poll it:  goro runs get -r df7b5519-ccd3-448d-b5dc-01a4273e0a6a
   Or wait:  goro runs get -r df7b5519-ccd3-448d-b5dc-01a4273e0a6a --wait

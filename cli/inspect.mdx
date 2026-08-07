@@ -16,8 +16,9 @@ web.search  Web search
             answer questions that need fresh sources. Billed per result page, about 10 results each.
   price     $0.0075 per page
             up to $1.00 for a single call, and never more than that.
-            Billed on actual usage, at 3x what the provider charged us, minimum $0.0020.
-            The hold scales with what you request. You are charged what the call cost.
+            Billed on actual usage, minimum $0.0020.
+            The hold scales with what you request. You are charged for what the call
+            actually did, and nothing if it cost nothing.
 
 Input
 FIELD             TYPE     REQ  NOTES
@@ -66,9 +67,8 @@ forwarded.
 On a scrape or a voice call the first line is the rate, stated flat because it
 is exact: what one row, one page, one thousand bytes or one second costs you.
 Under it come the ceiling for a single call, always written as "up to", the
-fact that billing follows actual usage at the stated multiple of provider cost
-with a floor, and the note that the hold is sized from your specific request
-rather than from the ceiling.
+fact that billing follows actual usage with a floor, and the note that the hold
+is sized from your specific request rather than from the ceiling.
 
 A flat-priced image tool prints a single line, `$0.18 per call, flat.`, because
 there is nothing else to say about it.

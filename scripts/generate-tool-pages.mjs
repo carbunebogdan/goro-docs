@@ -133,6 +133,23 @@ function priceSection(rule, slug) {
     ].join("\n");
   }
 
+  if (rule.type === "per_call_variant") {
+    // Flat and exact like per_call, one price per option, so none of
+    // cost_plus's hedging belongs here either. Cheapest first so the ladder
+    // reads in the direction a caller cares about, and every line is stated
+    // as the price of THAT option rather than as a floor for the tool.
+    const sorted = Object.entries(rule.variants).sort((a, b) => a[1] - b[1]);
+    const ladder = sorted
+      .map(([value, micro]) => `\`${value}\` costs **${formatUsd(micro)}**`)
+      .join(", ");
+    const defaultPrice = formatUsd(rule.variants[rule.default_variant]);
+    return [
+      `**${defaultPrice} per call at \`${rule.default_variant}\`.** A flat price, and the only thing that changes it is \`${rule.selector}\`: ${ladder}.`,
+      "",
+      `Every one of those is exact and known before the call, so the hold and the charge are the same number and there is no ceiling to reconcile. Omit \`${rule.selector}\` and you are billed the \`${rule.default_variant}\` price. A call that fails, times out or is stopped releases its hold in full and costs nothing.`,
+    ].join("\n");
+  }
+
   if (rule.type === "metered") {
     // The rate is EXACT here, which is the whole point of this rule type, so
     // none of cost_plus's hedging belongs in this copy. The ceiling still
@@ -160,7 +177,7 @@ function priceSection(rule, slug) {
       return [
         `**${rate} per ${unit}.** That is the rate you pay for each ${unit} the call returns, so the total depends on how many it produces.`,
         "",
-        `Billing follows actual usage, so a call that returns fewer ${plural(unit)} costs less. \`discover\` and \`inspect\` also return a ceiling for your specific request, which is a maximum you will never be charged above.`,
+        `Billing follows actual usage, so a call that returns fewer ${plural(unit)} costs less, and a call that costs us nothing to serve is free. \`discover\` and \`inspect\` also return a ceiling for your specific request, which is a maximum you will never be charged above.`,
       ].join("\n");
     }
     // No per-unit figure to publish. Quote the cap and nothing else, and say

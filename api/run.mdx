@@ -65,8 +65,7 @@ default. The rows are in `output`, abridged to one row here.
   "started_at": "2026-07-30T11:04:21.998Z",
   "finished_at": "2026-07-30T11:04:29.140Z",
   "price": {
-    "type": "cost_plus",
-    "markup": 3,
+    "type": "usage_based",
     "min_micro": 2000,
     "min_usd": "$0.0020",
     "max_micro": 1000000,
@@ -75,7 +74,7 @@ default. The rows are in `output`, abridged to one row here.
     "per_unit_micro": 7500,
     "per_unit_usd": "$0.0075",
     "unit_label": "page",
-    "summary": "$0.0075 per page, billed on actual usage (3x provider cost, minimum $0.0020), up to $1.00 per call"
+    "summary": "$0.0075 per page, billed on actual usage (minimum $0.0020 per call), up to $1.00 per call"
   }
 }
 ```
@@ -109,7 +108,7 @@ Past the synchronous window. You get a run id and poll it.
   "status_url": "https://api.usegoro.ai/v1/runs/8c3a1f42-2d7b-4a15-9f0e-6b2c8d5e7a91",
   "quoted_cost_micro": 450000,
   "quoted_cost_usd": "$0.45",
-  "price": { "type": "cost_plus", "markup": 3, "billed_on_actual_usage": true, "summary": "..." }
+  "price": { "type": "usage_based", "billed_on_actual_usage": true, "summary": "..." }
 }
 ```
 
@@ -146,19 +145,24 @@ ceiling.
 The **charge** is taken when the run settles, and how it is worked out depends
 on the tool's `price.type`:
 
-- `cost_plus`, which is most of the catalog: the markup applied to what the
-  provider actually charged, floored at `min_micro` and capped at both
-  `max_micro` and the hold. Whatever is left of the hold is released. A run
-  that returns zero rows and cost the provider nothing is billed nothing.
-- `per_call`, the image tools: `base_micro`, every time. The quote and the
-  charge are the same number, so nothing is released.
+- `usage_based`, which is most of the catalog: worked out from what the call
+  actually did, floored at `min_micro` and capped at both `max_micro` and the
+  hold. Whatever is left of the hold is released. A run that returned nothing,
+  or that cost nothing to serve, is billed nothing and comes back `free`.
+- `per_call`: `base_micro`, every time. The quote and the charge are the same
+  number, so nothing is released.
+- `per_call_variant`, the nano banana image tools: the price of the option you
+  asked for, picked from `variants` by the input named in `selector` (for those
+  two, `resolution`). Still flat and still exact, so the quote and the charge
+  are again the same number and nothing is released. Omit the field and you get
+  `default_variant`'s price.
 - `metered`, the voice tools: the published rate times the size of the input,
   measured after the fact. Speech to text bills the real duration of the audio,
   which is usually shorter than the `max_duration_seconds` the hold was sized
   from, so the difference comes back.
 
 <Note>
-  On a `cost_plus` run Goro waits for the provider's own billing to settle
+  On a `usage_based` run Goro waits for the provider's own billing to settle
   before charging, which is why `cost_micro` is authoritative and
   `quoted_cost_micro` is not. Do not report the quote to a user as the price of
   the call. On a `per_call` run the two are equal by construction.
