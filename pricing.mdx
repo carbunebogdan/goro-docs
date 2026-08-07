@@ -10,7 +10,7 @@ it. Unused balance stays yours.
 
 ## Three ways a tool prices
 
-Goro fronts three providers and they do not charge us the same way, so a
+Goro fronts three providers and they meter their work in different ways, so a
 quoted price does not mean the same thing everywhere. Which shape applies is
 written on the tool's page, and comes back as `price.type` from `discover` and
 `inspect`.
@@ -91,16 +91,17 @@ small calls to cover the large ones.
     holds more. The hold never exceeds the ceiling.
   </Step>
   <Step title="The charge">
-    When the call finishes, Goro reads what the underlying tool actually
-    charged, applies our margin, takes that, and releases the rest of the hold.
+    When the call finishes, Goro works out what it actually did, takes that
+    amount, and releases the rest of the hold.
   </Step>
 </Steps>
 
 ## A call that returns nothing
 
-If a call completes with no results and the tool positively reports it cost us
-nothing, it bills nothing. If it returned nothing but the tool still charged us
-to start, you pay our margin on that, which is fractions of a cent.
+If a call completes with no results, the per-call floor is waived and you pay
+only the published rate for what it actually did, which for an empty result is
+fractions of a cent. If the call cost nothing to serve, it bills nothing at all
+and comes back marked free.
 
 You are never charged for rows you did not receive. A flat-priced or metered
 call is different in kind: it either produced the thing you asked for, in which

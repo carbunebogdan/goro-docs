@@ -1,0 +1,88 @@
+---
+title: "Google Trends"
+description: "Google search demand for a term over time, as an interest index of 0 to 100 with an optional ranked regional breakdown, or the searches spiking in one country r"
+---
+
+Google search demand for a term over time, as an interest index of 0 to 100 with an optional ranked regional breakdown, or the searches spiking in one country right now with estimated volumes and related terms. One result per call in either mode.
+
+<Note>Use when the question is about SEARCH DEMAND rather than about posts: is interest in this rising or dying, when did it peak, is it seasonal, which regions want it most, or what is spiking in a country today. This is the only endpoint that returns a time series, and it counts everyone who typed the query into Google rather than the small minority who post about it. For what people are SAYING use twitter.search or reddit.posts, for what is popular ON a platform use tiktok.api, for what publishers wrote use news.search, for what ranks use web.search. Set mode first. Keyword mode takes ONE term per call, so a five-term comparison is five calls, and interest is indexed within the geo and window you asked for, so results from different settings are not comparable in absolute terms. Every call costs the same flat amount whether it returns five rows or five hundred, because the cost is almost entirely a fixed start fee.</Note>
+
+## Price
+
+**$0.0030 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `geo` | ``, `AF`, `ZA`, `AL`, `DZ`, `DE`, `AD`, `AO`, `AI`, `AG`, `SA`, `AR`, `AM`, `AW`, `AU`, `AT`, `AZ`, `BS`, `BH`, `BD`, `BB`, `BE`, `BZ`, `BJ`, `BM`, `BT`, `BY`, `BO`, `BA`, `BW`, `BR`, `BN`, `BG`, `BF`, `BI`, `KH`, `CM`, `CA`, `CV`, `CL`, `CN`, `CY`, `CO`, `KM`, `CG`, `CD`, `KP`, `KR`, `CR`, `CI`, `HR`, `CU`, `CW`, `DK`, `DJ`, `DM`, `EG`, `AE`, `EC`, `ER`, `ES`, `EE`, `US`, `ET`, `FJ`, `FI`, `FR`, `GA`, `GM`, `GE`, `GH`, `GI`, `GR`, `GL`, `HK`, `HU`, `IN`, `ID`, `IQ`, `IR`, `IE`, `IS`, `IL`, `IT`, `JM`, `JP`, `JO`, `KZ`, `KE`, `KW`, `LA`, `LV`, `LB`, `LY`, `LT`, `LU`, `MO`, `MY`, `MV`, `MT`, `MA`, `MX`, `MC`, `MN`, `ME`, `MZ`, `MM`, `NA`, `NP`, `NI`, `NG`, `NO`, `NZ`, `OM`, `UG`, `UZ`, `PK`, `PA`, `PY`, `NL`, `PE`, `PH`, `PL`, `PT`, `QA`, `RO`, `GB`, `RU`, `RW`, `SN`, `RS`, `SG`, `SK`, `SI`, `SO`, `LK`, `SE`, `CH`, `TW`, `TJ`, `TZ`, `TH`, `TN`, `TR`, `UA`, `UY`, `VE`, `VN`, `YE`, `ZM`, `ZW` |  | Country to measure interest in, for mode keyword, as a two-letter code. Leave it out, or send the empty string, for worldwide. The 0 to 100 index is computed WITHIN whatever geo and window you ask for, so a 100 in Romania and a 100 in the United States are not the same amount of searching. |
+| `mode` | `keyword`, `trending` | yes | Which question you are asking. keyword measures one search term over time. trending lists the terms spiking in one country right now. Required here even though the actor has a default, because that default is trending: a call that meant to analyse a keyword and forgot this field gets billed in full for a country's trending list instead. |
+| `keyword` | `string` |  | The search term to measure, for mode keyword. One term per call, since the actor takes a single string and not a list. Leave it out and the actor falls back to its own example term, bitcoin, and charges you for it. |
+| `fetchRegionalData` | `boolean` |  | Add region_data to a mode keyword result: every region of the chosen country, ranked and scored 0 to 100. Off unless you set it. Needs geo set, since worldwide has no regions to break down. Costs nothing extra, the call is one billed item either way. |
+| `predefinedTimeframe` | `now 1-h`, `now 4-h`, `now 1-d`, `now 7-d`, `today 1-m`, `today 3-m`, `today 12-m`, `today 5-y`, `all` |  | Window for mode keyword. The actor uses today 12-m when you leave it out. Google picks the granularity to fit the window and reports it back as data_granularity: minute for now 1-h, hour for the other now windows, day up to today 3-m, week for today 12-m, month for today 5-y and all. |
+| `trendingSearchesCountry` | `US`, `FR`, `AL`, `DZ`, `AO`, `AR`, `AM`, `AU`, `AT`, `AZ`, `BH`, `BD`, `BY`, `BE`, `BJ`, `BO`, `BA`, `BR`, `BG`, `BF`, `KH`, `CM`, `CA`, `CL`, `CO`, `CR`, `HR`, `CU`, `CY`, `CZ`, `CD`, `DK`, `DO`, `EC`, `EG`, `SV`, `EE`, `ET`, `FI`, `GE`, `DE`, `GH`, `GR`, `GT`, `HT`, `HN`, `HK`, `HU`, `IN`, `ID`, `IR`, `IQ`, `IE`, `IL`, `IT`, `CI`, `JM`, `JP`, `JO`, `KZ`, `KE`, `KW`, `KG`, `LV`, `LB`, `LY`, `LT`, `MY`, `ML`, `MX`, `MD`, `MA`, `MZ`, `MM`, `NP`, `NL`, `NZ`, `NI`, `NG`, `MK`, `NO`, `OM`, `PK`, `PS`, `PA`, `PY`, `PE`, `PH`, `PL`, `PT`, `PR`, `QA`, `RO`, `RU`, `SA`, `SN`, `RS`, `SG`, `SK`, `SI`, `ZA`, `KR`, `ES`, `LK`, `SE`, `CH`, `SY`, `TW`, `TZ`, `TH`, `TT`, `TN`, `TR`, `TM`, `UG`, `UA`, `AE`, `GB`, `UY`, `UZ`, `VE`, `VN`, `YE`, `ZM`, `ZW` |  | Country for mode trending, as a two-letter code. The actor uses US when you leave it out. This list is not the same as the geo list above: trending covers 125 countries, keyword interest covers 150 plus worldwide. |
+| `trendingSearchesMaxItems` | `integer` |  | How many trending terms to pack into the single result, for mode trending. The actor returns 50 when you leave it out. This does NOT change the price: the whole list arrives inside one dataset item, so asking for 5 costs exactly what asking for 100 costs. |
+| `trendingSearchesTimeframe` | `4`, `24`, `48`, `168` |  | How far back mode trending looks, in HOURS, sent as a string: 4, 24, 48 or 168 for one week. The actor uses 24 when you leave it out. A shorter window surfaces breaking spikes, a longer one surfaces what has stayed up. |
+| `trendingSearchesCategories` | `array` |  | Filter mode trending to these Google Trends categories, as string ids: 1 autos and vehicles, 2 beauty and fashion, 3 business and finance, 4 entertainment, 5 food and drink, 6 games, 7 health, 8 hobbies and leisure, 9 jobs and education, 10 law and government, 11 other, 13 pets and animals, 14 politics, 15 science, 16 shopping, 17 sports, 18 technology, 19 travel and transportation, 20 climate. There is no 12. Every category when you leave it out. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"trends.search","input":{"mode":"keyword"}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "geo": "US",
+  "keyword": "cold plunge",
+  "language": "en-US",
+  "timeframe": "today 12-m",
+  "trends_url": "https://trends.google.com/trends/explore?geo=US&q=cold+plunge&hl=en-US",
+  "region_data": [
+    {
+      "rank": 1,
+      "value": 100,
+      "region": "Utah"
+    },
+    {
+      "rank": 2,
+      "value": 94,
+      "region": "Colorado"
+    },
+    {
+      "rank": 3,
+      "value": 88,
+      "region": "Idaho"
+    }
+  ],
+  "timeline_data": {
+    "isPartial": {
+      "2025-08-03": false,
+      "2025-08-10": false,
+      "2026-07-26": false,
+      "2026-08-02": true
+    },
+    "cold plunge": {
+      "2025-08-03": 41,
+      "2025-08-10": 44,
+      "2026-07-26": 88,
+      "2026-08-02": 93
+    }
+  },
+  "data_granularity": "week"
+}
+```

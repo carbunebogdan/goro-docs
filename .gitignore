@@ -1,0 +1,4 @@
+
+# The tool-page generator lives in the private platform repo (scripts/).
+# It reads raw price rules, so it must not be published here.
+scripts/

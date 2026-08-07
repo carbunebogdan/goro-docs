@@ -1,0 +1,58 @@
+---
+title: "App Store reviews"
+description: "Customer reviews for the Apple App Store apps you name: star rating, review title and body, the reviewer's display name and profile link, the app version that w"
+---
+
+Customer reviews for the Apple App Store apps you name: star rating, review title and body, the reviewer's display name and profile link, the app version that was reviewed, the review date and the storefront it came from. One result, and one billable item, per review. Apple serves at most 500 reviews per app per storefront, so run several countries to go wider.
+
+<Note>Use when you need what users actually say about an iOS app: competitor research, sentiment and theme analysis, checking whether a release answered the complaint people kept posting, or pulling your own reviews to reply to them. Give the numeric App Store id, which is the digits after /id in a store URL such as apps.apple.com/us/app/name/id1234567890.</Note>
+
+## Price
+
+**$0.0003 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `appIds` | `array` | yes | Numeric App Store ids, without the id prefix. Reviews from every app named here share the one maxItems budget, they do not each get their own. |
+| `country` | `string` |  | App Store storefront to read reviews from, as a LOWERCASE ISO 3166-1 alpha-2 code (us, gb, de, jp). Uppercase is rejected upstream. Reviews are storefront specific, so this changes which reviews exist, not just their order. Defaults to `"us"`. |
+| `maxItems` | `integer` |  | Total reviews to return across every app and every start URL in this call. This is what the call is priced on, one billable item per review, so it is the only number that moves the cost. Capped at 5000 because that is the most Goro will hand back from one run. Defaults to `200`. |
+| `startUrls` | `array` |  | Optional App Store app URLs to scrape in the same run, in addition to appIds. Use this when you have store links rather than ids. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"appstore.reviews","input":{"appIds":["284882215","1234567890"],"maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "11223344556",
+  "url": "https://itunes.apple.com/us/review?id=1234567890&type=Purple%20Software",
+  "date": "2026-07-18T09:41:22-07:00",
+  "text": "Invented sample text. The widget is the reason I kept it after the trial. Sync broke once after an update and support had it fixed the same day.",
+  "appId": "1234567890",
+  "score": 4,
+  "title": "Almost exactly what I wanted",
+  "country": "US",
+  "userUrl": "https://itunes.apple.com/us/reviews/id111222333",
+  "version": "4.12.0",
+  "userName": "harbourline",
+  "inputSource": "1234567890"
+}
+```

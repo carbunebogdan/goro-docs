@@ -9,9 +9,9 @@ Generate an original image from a text prompt, or EDIT images you supply, using 
 
 ## Price
 
-**$0.18 per call.** A flat price. Every call that succeeds costs exactly this, whatever it returns, and you know the number before you make the call.
+**$0.18 per call at `2K`.** A flat price, and the only thing that changes it is `resolution`: `1K` costs **$0.12**, `2K` costs **$0.18**, `4K` costs **$0.27**.
 
-There is no ceiling to read and no usage to reconcile afterwards. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+Every one of those is exact and known before the call, so the hold and the charge are the same number and there is no ceiling to reconcile. Omit `resolution` and you are billed the `2K` price. A call that fails, times out or is stopped releases its hold in full and costs nothing.
 
 ## Input
 
@@ -19,7 +19,7 @@ There is no ceiling to read and no usage to reconcile afterwards. A call that fa
 | --- | --- | --- | --- |
 | `prompt` | `string` | yes | What to draw. Describe subject, composition, style, lighting and mood; the more specific, the closer the result. |
 | `image_urls` | `array` |  | Optional. Public http or https links to the images to edit, combine or use as reference (JPEG, PNG or WEBP, up to 10 MB each, up to 14 of them). Use this when the images are ALREADY published somewhere; the output URL of any image endpoint works directly, which is what makes generate-then-edit, and merging two generations, a two-call sequence with nothing to upload in between. Nothing is copied or re-hosted, we pass the links on. For files that are not already public, use image_handles instead and they never have to be published anywhere. Send one of the three, never two. |
-| `resolution` | `2K` |  | Fixed at 2K. Resolution changes what a generation costs, and this endpoint quotes one exact price, so other resolutions get their own endpoints. Defaults to `"2K"`. |
+| `resolution` | `1K`, `2K`, `4K` |  | Output resolution, and the only thing that changes the price: $0.12 at 1K, $0.18 at 2K, $0.27 at 4K. Defaults to 2K. Ask for 1K on drafts and volume work, 4K when the image is final. Defaults to `"2K"`. |
 | `aspect_ratio` | `1:1`, `2:3`, `3:2`, `3:4`, `4:3`, `4:5`, `5:4`, `9:16`, `16:9`, `21:9` |  | Shape of the output image. Defaults to `"1:1"`. |
 | `image_base64` | `string` |  | Optional, and only for ONE small image (under 3 MB) when you cannot run a shell command AND cannot ask the user to open a link. The image inline, as base64 of the file's own bytes; a data:image/png;base64, prefix is accepted and its declared type ignored. Only one image can arrive this way, because every inline image shares one request body. Understand the cost before choosing it: on an MCP call the request IS the tool arguments, which pass through the model's context window. A 3 MB photograph is 4 MB of base64, on the order of a million tokens, and in practice it is truncated and the run fails looking like file corruption. Do not downscale an image to fit here: use image_handles, which takes up to 10 MB per file and keeps them out of the conversation entirely. JPEG, PNG or WEBP, checked against the file's own leading bytes rather than against any type you declare. Send one of the three, never two. |
 | `image_handles` | `array` |  | Optional, and the RIGHT WAY to send local or private images to edit. Upload each file first with POST /v1/uploads (or the create_upload MCP tool, which also hands back a link a PERSON can open to pick the file on their own device, for when you have no shell) and put the short handles it returns here, in order. The files go straight from you to a private bucket: they never pass through a tool call, so they never pass through a model's context window, and up to 10 MB each is fine. Nothing is published. A handle is usable for 10 minutes after its upload lands and the file is deleted 30 minutes after that. Supplying any image makes this an edit rather than a generation, at exactly the same price. Up to 14 images, and the extras are free. Send one of image_handles, image_urls and image_base64, never two. |

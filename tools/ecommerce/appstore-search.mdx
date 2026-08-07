@@ -1,0 +1,70 @@
+---
+title: "App Store keyword search"
+description: "Ranked Apple App Store search results for the keywords you name: each app's position for that keyword, its name, numeric App Store id, developer, genre, price, "
+---
+
+Ranked Apple App Store search results for the keywords you name: each app's position for that keyword, its name, numeric App Store id, developer, genre, price, star rating, rating count, release date, icon and store link. Every row also carries keyword level market context (how many apps compete for the term, the top ten's average rating and median rating count, how many of the top ten are paid) and three 0 to 100 estimates for popularity, ranking difficulty and opportunity. One result, and one billable item, per app per keyword.
+
+<Note>Use to find the apps that own a search term before you build against them or position around them, to size how contested a keyword is, or to pull a competitor shortlist you then feed into appstore.reviews. Returns up to 20 apps per keyword per storefront, across 60 country storefronts. Apple only; see the stores field.</Note>
+
+## Price
+
+**$0.0030 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `topN` | `integer` |  | How many top ranked apps to return per keyword. Multiplies the number of results, and therefore the cost, directly. Defaults to `10`. |
+| `action` | `keyword-top-apps` |  | Fixed. The underlying source can also expand a seed keyword into suggestions and track a named app's rank, but those count their results from different fields, so they would break this endpoint's price estimate and will get their own endpoints instead. Defaults to `"keyword-top-apps"`. |
+| `stores` | `array` |  | Which store to search. Leave it alone unless you have a reason: google returns zero rows through this endpoint, because Google Play needs a residential proxy for this source and caller supplied proxy configuration is refused. Asking for google costs nothing, since no rows means no billable items, but it returns nothing either. Defaults to `["apple"]`. |
+| `keywords` | `array` | yes | Search terms to rank apps for. Each keyword returns its own set of up to topN apps, and every app returned is one billable item, so the cost of a call is keywords x topN. |
+| `storefront` | `us`, `gb`, `jp`, `kr`, `cn`, `de`, `fr`, `au`, `ca`, `br`, `in`, `mx`, `it`, `es`, `nl`, `se`, `no`, `dk`, `fi`, `ch`, `at`, `be`, `pt`, `ie`, `nz`, `sg`, `hk`, `tw`, `th`, `my`, `ph`, `id`, `vn`, `sa`, `ae`, `il`, `tr`, `ru`, `pl`, `cz`, `hu`, `ro`, `bg`, `hr`, `sk`, `si`, `lt`, `lv`, `ee`, `gr`, `ua`, `za`, `ng`, `ke`, `eg`, `ar`, `cl`, `co`, `pe`, `pk` |  | Country storefront to search, as a lowercase ISO 3166-1 alpha-2 code. Note gb, not uk. Defaults to `"us"`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"appstore.search","input":{"keywords":["habit tracker","calorie counter"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "url": "https://apps.apple.com/us/app/lumen-habit-tracker/id1234567890?uo=4",
+  "appId": "1234567890",
+  "genre": "Health & Fitness",
+  "price": "Free",
+  "store": "apple",
+  "action": "keyword-top-apps",
+  "rating": 4.68312,
+  "appName": "Lumen Habit Tracker",
+  "appRank": 1,
+  "iconUrl": "https://example.com/media/sample-app-icon.png",
+  "keyword": "habit tracker",
+  "developer": "Northgate Labs",
+  "scrapedAt": "2026-08-04T11:14:27.797Z",
+  "storefront": "us",
+  "ratingCount": 21847,
+  "releaseDate": "2021-04-16",
+  "totalResults": 183,
+  "top10AvgRating": 4.61,
+  "top10PaidCount": 1,
+  "difficultyEstimate": 61,
+  "popularityEstimate": 74,
+  "top10MedianRatings": 48210,
+  "opportunityEstimate": 31
+}
+```

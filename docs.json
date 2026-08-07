@@ -58,6 +58,7 @@
             "group": "Search",
             "pages": [
               "tools/search/news-search",
+              "tools/search/trends-search",
               "tools/search/web-search"
             ]
           },
@@ -93,6 +94,7 @@
           {
             "group": "People and companies",
             "pages": [
+              "tools/people/email-finder",
               "tools/people/linkedin-company_employees",
               "tools/people/linkedin-jobs",
               "tools/people/linkedin-profile",
@@ -115,7 +117,17 @@
               "tools/ecommerce/amazon-reviews_global",
               "tools/ecommerce/amazon-search",
               "tools/ecommerce/amazon-sellers_eu",
+              "tools/ecommerce/appstore-reviews",
+              "tools/ecommerce/appstore-search",
+              "tools/ecommerce/playstore-reviews",
               "tools/ecommerce/shopping-search"
+            ]
+          },
+          {
+            "group": "Web pages and audits",
+            "pages": [
+              "tools/web/web-scrape",
+              "tools/web/website-audit"
             ]
           },
           {

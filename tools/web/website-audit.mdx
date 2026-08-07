@@ -1,0 +1,432 @@
+---
+title: "Website audit"
+description: "Technical and on-page SEO audit of one website, page by page, in a real browser. Each page comes back with a 0 to 100 score and nine category scores, plus meta "
+---
+
+Technical and on-page SEO audit of one website, page by page, in a real browser. Each page comes back with a 0 to 100 score and nine category scores, plus meta tags (title and description with lengths, canonical, robots, Open Graph, Twitter card, viewport, language), heading structure, content signals (word count, readability, keyword density, thin content, search intent), technical checks (HTTPS and certificate, mobile friendliness, sitemap, robots.txt, JSON-LD, microdata and RDFa types, AMP, indexability, whether the page needs JavaScript to render its content, pagination), page timing measured in the browser (time to first byte, first contentful paint, total blocking time, cumulative layout shift, speed index), links (internal and external counts, anchor text quality, broken links and redirect targets with the status code each returned), image alt and size coverage, and basic accessibility (ARIA labels, lang attribute, skip links, contrast). Every issue is classified critical, warning or info and carries an id, a category, a priority, an estimated impact and a fix hint. A final item of type site-summary averages the pages, ranks the issues that repeat across them, and reports crawl coverage.
+
+<Note>Use when you have a website and need to know what is actually wrong with it: auditing a prospect before pitching, checking a site after a launch or migration, or turning a domain into a concrete fix list. One site per call, so pass a single URL and call again for the next one. Billed per PAGE audited, not per site: leaving maxPages out audits up to 5 pages, and whatever you set is what you pay for, up to 25. It does NOT tell you what a site is built on (no CMS, framework, analytics or hosting detection) and returns nothing about backlinks, keyword rankings or traffic.</Note>
+
+## Price
+
+**$0.12 per page.** That is the rate you pay for each page the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer pages costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `maxPages` | `integer` |  | How many pages to crawl and audit, and therefore how many pages you are billed for. The actor audits 5 when you leave it out. A site with fewer pages than this bills only the pages it found. 25 is Goro's ceiling, not the actor's: past it a crawl can outlive this endpoint's 20 minute run limit. |
+| `startUrls` | `array` | yes | The one site to audit, as a URL string or an object with a url. One site per call: the page cap below is applied per start URL, so a second URL would double what you are billed while the quote still sized itself on one. Call again for the next site. |
+| `auditLinks` | `boolean` |  | Internal and external link counts, anchor text quality, broken links and redirect targets with status codes. On unless you set it false. |
+| `crawlPages` | `boolean` |  | Follow internal links from the start URL and audit more pages of the same site. The actor does this when you leave it out. Set it false to audit only the exact URL you passed, which bills one page. |
+| `auditImages` | `boolean` |  | Alt attributes, dimensions, file size, format, lazy loading. On unless you set it false. |
+| `auditSchema` | `boolean` |  | JSON-LD, microdata and RDFa detection with the schema.org types found. On unless you set it false. |
+| `auditContent` | `boolean` |  | Word count, readability, keyword density, thin content, search intent. On unless you set it false. |
+| `auditHeadings` | `boolean` |  | Heading hierarchy H1 to H6, multiple H1s, skipped levels. On unless you set it false. |
+| `auditMetaTags` | `boolean` |  | Title, description, Open Graph, Twitter card, canonical. On unless you set it false. Turning a section off makes the output smaller, never cheaper: the price is per page audited whatever it contains. |
+| `auditTechnical` | `boolean` |  | HTTPS and certificate, canonical, robots meta, sitemap, robots.txt, mobile friendliness, indexability, JavaScript rendering, AMP, pagination. On unless you set it false. |
+| `maxConcurrency` | `integer` |  | Pages audited in parallel. The actor uses 5. Lower it on a site that rate-limits you. |
+| `auditPerformance` | `boolean` |  | Page timing measured in the browser: time to first byte, first contentful paint, total blocking time, cumulative layout shift, speed index. On unless you set it false. Note it does not measure LCP or INP. |
+| `respectRobotsTxt` | `boolean` |  | Skip URLs the site's robots.txt disallows. The actor does this when you leave it out. |
+| `includeSubdomains` | `boolean` |  | Also crawl subdomains of the start URL, e.g. blog.site.com when starting from site.com. Off unless you set it. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"website.audit","input":{"startUrls":["example"],"maxPages":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "type": "page",
+  "audit": {
+    "url": "https://example-store.test/collections/lamps",
+    "links": {
+      "broken": {
+        "urls": [
+          "https://example-store.test/collections/discontinued"
+        ],
+        "count": 1,
+        "verified": [
+          {
+            "url": "https://example-store.test/collections/discontinued",
+            "error": "Not Found",
+            "statusCode": 404
+          }
+        ]
+      },
+      "external": {
+        "count": 4,
+        "sample": [
+          "https://instagram.com/example-store"
+        ],
+        "dofollow": 1,
+        "nofollow": 3
+      },
+      "internal": {
+        "count": 84,
+        "sample": [
+          "https://example-store.test/products/brass-floor-lamp"
+        ],
+        "unique": 71,
+        "inFooter": 18,
+        "inContent": 44,
+        "inNavigation": 22
+      },
+      "redirects": {
+        "urls": [
+          {
+            "url": "https://example-store.test/lamps",
+            "status": 301,
+            "redirectUrl": "https://example-store.test/collections/lamps"
+          }
+        ],
+        "count": 1
+      },
+      "anchorTexts": {
+        "empty": 2,
+        "generic": 5,
+        "descriptive": 77
+      }
+    },
+    "title": "Lamps and lighting",
+    "images": {
+      "total": 31,
+      "images": [
+        {
+          "alt": "Brass floor lamp with linen shade",
+          "url": "https://example-store.test/media/brass-floor-lamp.jpg",
+          "title": "",
+          "width": 1200,
+          "format": "jpg",
+          "hasAlt": true,
+          "height": 1600,
+          "sizeKB": 412,
+          "isLarge": true,
+          "fileName": "brass-floor-lamp.jpg",
+          "hasTitle": false
+        }
+      ],
+      "withAlt": 19,
+      "optimized": 24,
+      "withTitle": 0,
+      "withoutAlt": 12,
+      "largeImages": 3
+    },
+    "issues": {
+      "info": [
+        "No Twitter card tags"
+      ],
+      "critical": [
+        "12 images are missing alt text"
+      ],
+      "warnings": [
+        "Meta description is 187 characters (optimal: 120-160)"
+      ],
+      "structured": {
+        "info": [],
+        "critical": [
+          {
+            "id": "IMAGES_MISSING_ALT",
+            "fixHint": "Add descriptive alt text to every content image.",
+            "message": "12 images are missing alt text",
+            "category": "images",
+            "priority": 8,
+            "pagesAffected": [
+              "https://example-store.test/collections/lamps"
+            ],
+            "estimatedImpact": "high"
+          }
+        ],
+        "warnings": [
+          {
+            "id": "DESCRIPTION_TOO_LONG",
+            "fixHint": "Trim the meta description to 120-160 characters so it is not cut off in results.",
+            "message": "Meta description is 187 characters (optimal: 120-160)",
+            "category": "meta",
+            "priority": 3,
+            "pagesAffected": [
+              "https://example-store.test/collections/lamps"
+            ],
+            "estimatedImpact": "medium"
+          }
+        ]
+      }
+    },
+    "content": {
+      "intent": "transactional",
+      "length": 3184,
+      "wordCount": 512,
+      "readability": {
+        "level": "Fairly easy",
+        "score": 58,
+        "recommendation": "Readability is acceptable for a product listing page."
+      },
+      "thinContent": false,
+      "sentenceCount": 31,
+      "characterCount": 3184,
+      "keywordDensity": {
+        "topKeywords": [
+          {
+            "count": 16,
+            "density": 3.12,
+            "keyword": "lamps"
+          },
+          {
+            "count": 10,
+            "density": 1.95,
+            "keyword": "lighting"
+          }
+        ],
+        "keywordRelevanceScore": 82
+      },
+      "paragraphCount": 9,
+      "recommendation": "Content length is fine. Add a short intro paragraph above the grid.",
+      "h1TitleConsistency": {
+        "h1Text": "Lamps and lighting",
+        "titleText": "Lamps and lighting",
+        "consistent": true
+      },
+      "averageCharsPerWord": 5.21,
+      "averageWordsPerSentence": 16.52
+    },
+    "headings": {
+      "h1": {
+        "count": 1,
+        "texts": [
+          "Lamps and lighting"
+        ],
+        "optimal": true
+      },
+      "h2": {
+        "count": 3,
+        "texts": [
+          "Floor lamps",
+          "Table lamps"
+        ]
+      },
+      "h3": {
+        "count": 6,
+        "texts": [
+          "Brass finish"
+        ]
+      },
+      "h4": {
+        "count": 0,
+        "texts": []
+      },
+      "h5": {
+        "count": 0,
+        "texts": []
+      },
+      "h6": {
+        "count": 0,
+        "texts": []
+      },
+      "structure": {
+        "valid": true,
+        "issues": [],
+        "hierarchy": [
+          {
+            "tag": "h1",
+            "text": "Lamps and lighting",
+            "level": 1
+          },
+          {
+            "tag": "h2",
+            "text": "Floor lamps",
+            "level": 2
+          }
+        ]
+      }
+    },
+    "metaTags": {
+      "title": {
+        "value": "Lamps and lighting",
+        "length": 18,
+        "unique": true,
+        "optimal": false,
+        "present": true,
+        "lengthPixels": 118,
+        "recommendation": "Title too short (18 characters, ~118px). Recommended: 30-60 characters."
+      },
+      "robots": {
+        "value": "index, follow",
+        "noindex": false,
+        "present": true,
+        "nofollow": false,
+        "directives": [
+          "index",
+          "follow"
+        ]
+      },
+      "charset": {
+        "value": "utf-8",
+        "present": true
+      },
+      "language": {
+        "value": "en",
+        "present": true
+      },
+      "viewport": {
+        "valid": true,
+        "value": "width=device-width, initial-scale=1",
+        "present": true
+      },
+      "canonical": {
+        "url": "https://example-store.test/collections/lamps",
+        "present": true,
+        "selfReferencing": true
+      },
+      "openGraph": {
+        "url": "https://example-store.test/collections/lamps",
+        "type": "website",
+        "image": "",
+        "title": "Lamps and lighting",
+        "present": true,
+        "complete": false,
+        "description": "Floor, table and pendant lighting."
+      },
+      "description": {
+        "value": "Browse our full range of floor lamps, table lamps and pendant lighting, with next day delivery on everything in stock and a two year guarantee on every fitting we sell.",
+        "length": 187,
+        "unique": true,
+        "optimal": false,
+        "present": true,
+        "lengthPixels": 1204,
+        "recommendation": "Description too long. Recommended: 120-160 characters."
+      },
+      "twitterCard": {
+        "present": false,
+        "complete": false
+      }
+    },
+    "technical": {
+      "amp": {
+        "present": false
+      },
+      "https": {
+        "valid": true,
+        "present": true,
+        "protocol": "https:",
+        "certificateValid": true
+      },
+      "sitemap": {
+        "url": "https://example-store.test/sitemap.xml",
+        "valid": true,
+        "present": true,
+        "sources": [
+          {
+            "url": "https://example-store.test/sitemap.xml",
+            "foundIn": "robots.txt",
+            "validXml": true,
+            "statusCode": 200
+          }
+        ],
+        "accessible": true
+      },
+      "rendering": {
+        "contentMissingWithoutJS": false,
+        "usesJavaScriptRendering": true,
+        "internalLinksMissingWithoutJS": true
+      },
+      "robotsTxt": {
+        "url": "https://example-store.test/robots.txt",
+        "valid": true,
+        "content": "User-agent: *\nDisallow: /cart\nSitemap: https://example-store.test/sitemap.xml",
+        "present": true,
+        "accessible": true
+      },
+      "pagination": {
+        "hasNext": true,
+        "hasPrev": false,
+        "pageNumber": 1,
+        "isPaginated": true
+      },
+      "indexability": {
+        "reason": null,
+        "signals": {
+          "metaRobots": "index, follow",
+          "xRobotsTag": null,
+          "canonicalUrl": "https://example-store.test/collections/lamps",
+          "canonicalStatusCode": 200
+        },
+        "indexable": true
+      },
+      "mobileFriendly": {
+        "responsive": true,
+        "viewportValid": true,
+        "viewportPresent": true,
+        "isMobileFriendly": true
+      },
+      "structuredData": {
+        "rdfa": false,
+        "types": [
+          "BreadcrumbList",
+          "ItemList"
+        ],
+        "jsonLd": true,
+        "schemas": [
+          {
+            "type": "BreadcrumbList",
+            "format": "json-ld"
+          }
+        ],
+        "microdata": false,
+        "recommendation": "Add Product markup to the items in this listing."
+      }
+    },
+    "crawlDepth": 1,
+    "httpStatus": 200,
+    "performance": {
+      "speedIndex": 2410.5,
+      "pageLoadTime": 0,
+      "coreWebVitals": {
+        "cls": 0.07
+      },
+      "timeToFirstByte": 214,
+      "totalBlockingTime": 240,
+      "firstContentfulPaint": 1180,
+      "cumulativeLayoutShift": 0.07
+    },
+    "overallScore": 71,
+    "accessibility": {
+      "skipLinks": false,
+      "ariaLabels": 6,
+      "colorContrast": {
+        "issues": 2,
+        "passed": false
+      },
+      "langAttribute": true
+    },
+    "categoryScores": {
+      "links": 90,
+      "images": 40,
+      "schema": 50,
+      "content": 60,
+      "headings": 100,
+      "metaTags": 75,
+      "technical": 80,
+      "performance": 65,
+      "accessibility": 70
+    }
+  },
+  "title": "Lamps and lighting",
+  "pageUrl": "https://example-store.test/collections/lamps",
+  "httpStatus": 200
+}
+```

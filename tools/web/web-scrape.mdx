@@ -1,0 +1,47 @@
+---
+title: "Web page scrape"
+description: "Fetches one or more web pages and returns each page title plus its cleaned text content, with navigation, headers, footers and cookie banners stripped out. Work"
+---
+
+Fetches one or more web pages and returns each page title plus its cleaned text content, with navigation, headers, footers and cookie banners stripped out. Works on any public URL and is tied to no particular site.
+
+<Note>Use when you have URLs and need what is actually on those pages, and no site-specific tool fits: an article, a docs page, a pricing or about page, or a link another tool handed you. Not a search engine, so give it URLs rather than a query, and reach for web.search or news.search when you need to find the pages first. One result, and one billable item, per URL, including URLs that fail to load.</Note>
+
+## Price
+
+**$0.005970 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `urls` | `array` | yes | Pages to fetch. Full URLs (https://example.com/pricing) or bare hostnames (example.com), which are resolved to https for you. Each URL is fetched exactly as given and no links are followed, so this reads pages rather than crawling sites. One result, and one billable item, per URL, INCLUDING a URL that cannot be loaded: that one comes back with success false, pageTitle null and text "Scrape Failed", and is charged the same as a successful one. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"web.scrape","input":{"urls":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "text": "How we cut p99 latency by 60 percent Published 12 March 2026 Our checkout API used to spend most of its time waiting on a single lookup. This post walks through how we found it, what we changed, and the numbers before and after. Finding it We started with traces rather than dashboards, because the average looked fine and only the tail hurt...",
+  "success": true,
+  "pageTitle": "How we cut p99 latency by 60 percent",
+  "originalUrl": "https://example.com/blog/how-we-cut-latency"
+}
+```

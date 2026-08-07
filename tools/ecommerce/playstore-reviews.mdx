@@ -1,0 +1,75 @@
+---
+title: "Google Play reviews"
+description: "Customer reviews for the Google Play apps you name: star rating, review body, the reviewer's display name and avatar, the app version that was reviewed, thumbs "
+---
+
+Customer reviews for the Google Play apps you name: star rating, review body, the reviewer's display name and avatar, the app version that was reviewed, thumbs up count, the developer's reply where there is one, and Google's per feature star breakdown. One result, and one billable item, per review. Google Play groups reviews by the language they were written in, so language is what decides which reviews you get.
+
+<Note>Use when you need what users actually say about an Android app: competitor research, sentiment and theme analysis, spotting the version a rating slide started at, or pulling your own reviews and the replies you already sent. Give the package name, which is the value after ?id= in a play.google.com URL, such as com.instagram.android.</Note>
+
+## Price
+
+**$0.0003 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `sort` | `NEWEST`, `RATING`, `HELPFULNESS` |  | Which reviews to take first when maxItems is smaller than what the app has. NEWEST for monitoring, RATING to reach the low stars, HELPFULNESS for the ones other users voted up. Defaults to `"NEWEST"`. |
+| `appIds` | `array` | yes | Google Play package names. Reviews from every app named here share the one maxItems budget, they do not each get their own. |
+| `country` | `string` |  | Google Play storefront to read the app from, as an UPPERCASE ISO 3166-1 alpha-2 code (US, GB, DE, BR). Lowercase is rejected upstream. Use language, not this, to change which reviews come back. Defaults to `"US"`. |
+| `language` | `string` |  | Language of the reviews to return, as a Google Play language code (en, de, fr, pt-BR, es-419). Google Play buckets reviews by the language they were written in, so leaving this at en returns only English reviews however large the app is. Defaults to `"en"`. |
+| `maxItems` | `integer` |  | Total reviews to return across every app and every start URL in this call. This is what the call is priced on, one billable item per review, so it is the only number that moves the cost. Capped at 5000 because that is the most Goro will hand back from one run. Defaults to `200`. |
+| `startUrls` | `array` |  | Optional Google Play app URLs to scrape in the same run, in addition to appIds. Use this when you have store links rather than package names. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"playstore.reviews","input":{"appIds":["com.instagram.android","org.telegram.messenger"],"maxItems":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "0f2b7c14-5a63-4d8e-9f01-2c7a5b3d6e84",
+  "url": "https://play.google.com/store/apps/details?id=com.example.lumen&reviewId=0f2b7c14-5a63-4d8e-9f01-2c7a5b3d6e84",
+  "date": "2026-07-19T08:12:44.512Z",
+  "text": "Invented sample text. Good tracker and the import worked first time, but the weekly summary stopped arriving after the last update.",
+  "appId": "com.example.lumen",
+  "score": 3,
+  "title": null,
+  "country": "US",
+  "version": "4.12.0",
+  "language": "en",
+  "thumbsUp": 6,
+  "userName": "R. Okafor",
+  "criterias": [
+    {
+      "rating": null,
+      "criteria": "vaf_app_quality_stability"
+    },
+    {
+      "rating": 4,
+      "criteria": "vaf_phase1_ease_of_use"
+    }
+  ],
+  "replyDate": "2026-07-20T10:02:11.004Z",
+  "replyText": "Invented sample reply. That is fixed in 4.12.1, thanks for flagging it.",
+  "scoreText": "3",
+  "userImage": "https://example.com/media/sample-avatar.png",
+  "inputSource": "com.example.lumen"
+}
+```
