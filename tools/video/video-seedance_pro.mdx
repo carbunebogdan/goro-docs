@@ -3,7 +3,7 @@ title: "Seedance 2.0 video"
 description: "Generate a video from a text prompt using ByteDance Seedance 2.0, the full model, at 720p with optional audio, or animate a still image you supply. Returns the "
 ---
 
-Generate a video from a text prompt using ByteDance Seedance 2.0, the full model, at 720p with optional audio, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Generate a video from a text prompt using ByteDance Seedance 2.0, the full model, at 720p with optional audio, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
 
 <Note>Use when Seedance Mini is close but not sharp enough: the same prompt handling and multi-shot consistency with noticeably better detail and motion, from a prompt or from a starting image at the same price per second. To send a local or private image, upload it first (POST /v1/uploads, or create_upload over MCP, or goro run --image) and pass the handle as image_handle, so the file never travels through the request. Billed per second of video you ask for, at twice the Mini rate.</Note>
 

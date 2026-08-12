@@ -3,7 +3,7 @@ title: "Veo 3.1 video"
 description: "Generate an 8 second video with sound using Google Veo 3.1 at its Quality tier in 1080p, from a text prompt or from a still image you supply. Returns the URL of"
 ---
 
-Generate an 8 second video with sound using Google Veo 3.1 at its Quality tier in 1080p, from a text prompt or from a still image you supply. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Generate an 8 second video with sound using Google Veo 3.1 at its Quality tier in 1080p, from a text prompt or from a still image you supply. Returns the URL of the generated MP4. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
 
 <Note>Use when the video itself is the deliverable and it has to hold up: an ad, a hero clip, a pitch asset. The strongest model in the catalog for prompt following, physical realism and synchronised audio, and the most expensive by a wide margin. Takes a text prompt or one starting image, at one flat price per video either way, so reach for video.grok first if you are only exploring. To send a local or private image, upload it first (POST /v1/uploads, or create_upload over MCP, or goro run --image) and pass the handle as image_handle, so the file never travels through the request.</Note>
 

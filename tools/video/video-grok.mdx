@@ -3,7 +3,7 @@ title: "Grok Imagine video"
 description: "Generate a video from a text prompt using xAI Grok Imagine, at 720p with sound, or animate a still image you supply. Returns the URL of the generated MP4. That "
 ---
 
-Generate a video from a text prompt using xAI Grok Imagine, at 720p with sound, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Generate a video from a text prompt using xAI Grok Imagine, at 720p with sound, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
 
 <Note>Use when you need motion cheaply or at volume: drafts, moving backgrounds, quick social clips, or ten takes on an idea before committing to an expensive model. By far the cheapest video model in the catalog, and it takes the longest clips (up to 30 seconds). It is also the cheapest way here to ANIMATE A PHOTOGRAPH, at a sixth of what video.kling costs per second and with no minimum length, and an image costs exactly the same per second as a text prompt. To send a local or private image, upload it first (POST /v1/uploads, or create_upload over MCP, or goro run --image) and pass the handle as image_handle: the file goes straight to private storage and never travels through the request. Billed per second of video you ask for.</Note>
 
