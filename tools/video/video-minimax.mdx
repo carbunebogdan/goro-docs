@@ -3,15 +3,15 @@ title: "MiniMax H3 video"
 description: "Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio, or animate a still image you supply. Returns the URL of the generated "
 ---
 
-Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: kie.ai deletes generated media after 14 days and Goro holds a run's results for 24 hours, so collect what you need within 24 hours.
+Generate a video from a text prompt using MiniMax H3 (Hailuo 03) at 2K with native audio, or animate a still image you supply. Returns the URL of the generated MP4. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
 
 <Note>Use when you want the highest resolution in the catalog, with stereo sound and strong motion, from a text prompt or from one starting image. A step up from seedance and grok, a step down in price from Veo. An image costs the same per second as a text prompt here. To send a local or private image, upload it first (POST /v1/uploads, or create_upload over MCP, or goro run --image) and pass the handle as image_handle, so the file never travels through the request. Billed per second of video you ask for.</Note>
 
 ## Price
 
-**$0.3650 per second of video.** An exact rate, not an estimate. The total is that rate times the seconds of video in your request, so you can work out what a call costs before you make it.
+**$0.1950 per second of video.** An exact rate, not an estimate. The total is that rate times the seconds of video in your request, so you can work out what a call costs before you make it.
 
-No call costs less than $0.0020 or more than $5.4750, the price of the largest request this endpoint takes, 15 seconds of video. `discover` and `inspect` quote your exact request before it runs.
+No call costs less than $0.0020 or more than $2.9250, the price of the largest request this endpoint takes, 15 seconds of video. `discover` and `inspect` quote your exact request before it runs.
 
 ## Input
 
