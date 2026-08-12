@@ -1,0 +1,63 @@
+---
+title: "Options chains"
+description: "The option chain for the symbols you name, one row per contract: the underlying symbol and its price at capture, call or put, the OCC contract symbol, strike, e"
+---
+
+The option chain for the symbols you name, one row per contract: the underlying symbol and its price at capture, call or put, the OCC contract symbol, strike, expiration, last price, bid, ask, change and percent change, contract volume, open interest, implied volatility as a number, whether it is in the money, the currency and the last trade time. Covers as many upcoming expirations per symbol as you ask for. One result, and one billable item, per contract.
+
+<Note>Use for what the options market is currently pricing: implied volatility across strikes, open interest and unusual volume, put and call skew, or the quote on one specific contract. Rows here are contracts, not symbols, and a single expiration on a liquid US name runs 50 to 400 of them, so maxItems is the ceiling you set on the call. The chain is written calls first in ascending strike order, then puts, per expiration, which means a ceiling smaller than the chain returns low strike calls and no puts at all: ask for one symbol and one expiration when you want a chain you can reason about. Use finance.quote for the underlying snapshot and finance.history for its realised move. Figures come from Yahoo Finance's public feeds rather than from an exchange or an options data vendor, so quotes can be delayed and illiquid contracts can carry stale bids, zero volume and a last price from days ago.</Note>
+
+## Price
+
+**$0.0030 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tickers` | `array` | yes | Yahoo Finance symbols for instruments that have listed options, so equities, ETFs and indices. Capped at 10 because every symbol multiplies the contract count and the maxItems ceiling is shared across all of them. |
+| `maxItems` | `integer` |  | Total contracts to return across every symbol and expiration in this call, and the only number that moves the price: one billable item per contract. 200 is roughly one liquid name's nearest expiration. Filled in chain order rather than shared out, so a cap smaller than the chain truncates the far strikes and the puts, and the run can publish a few rows past the cap when several symbols are in flight. Defaults to `200`. |
+| `operation` | `options` |  | Fixed. The underlying source defaults to live quotes, so this is sent on every call: without it a request for a chain would be answered, and billed, as snapshots. Defaults to `"options"`. |
+| `optionsExpirations` | `integer` |  | How many upcoming expiration dates to fetch per symbol, nearest first. Each expiration is a full call and put chain, so raising this multiplies the contracts, and therefore the cost, unless maxItems stops it first. Defaults to `1`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"finance.options","input":{"tickers":["AAPL"],"maxItems":20}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "ask": 6.45,
+  "bid": 6.2,
+  "type": "call",
+  "change": 0.4000001,
+  "strike": 150,
+  "symbol": "NRTH",
+  "volume": 1842,
+  "currency": "USD",
+  "lastPrice": 6.35,
+  "expiration": "2026-09-18T00:00:00.000Z",
+  "inTheMoney": false,
+  "openInterest": 9314,
+  "lastTradeDate": "2026-08-07T19:52:11.000Z",
+  "percentChange": 6.7226887,
+  "contractSymbol": "NRTH260918C00150000",
+  "underlyingPrice": 148.22,
+  "impliedVolatility": 0.312255859375
+}
+```

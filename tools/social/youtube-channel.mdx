@@ -1,0 +1,75 @@
+---
+title: "YouTube channel"
+description: "Channel-level statistics for YouTube channels you can already name: subscriber count, lifetime views, how many videos it has published, the date it was created,"
+---
+
+Channel-level statistics for YouTube channels you can already name: subscriber count, lifetime views, how many videos it has published, the date it was created, its description, topic tags and the countries it is available in.
+
+<Note>Use when you have a channel handle or URL and need the channel itself rather than its videos: sizing a creator before outreach, checking a channel is real and how long it has existed, or pulling subscriber and view totals for a competitor set. One billed lookup per URL, whatever each channel's size, so a 20-channel comparison is one call and twenty units. Use youtube.channel_search instead when you do NOT know the handle and need to find channels by topic, and youtube.videos when you want the channel's actual videos rather than its totals. Note that viewCount and videoCount come back as strings while subscriberCount is a number.</Note>
+
+## Price
+
+**$0.0150 per event.** That is the rate you pay for each event the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer events costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `gl` | `string` |  | Two-letter country code, lowercase, passed to YouTube as the gl query parameter. Affects which localised variant of a channel's metadata comes back, not which channels resolve. The actor uses us when you leave it out. |
+| `hl` | `string` |  | Language code, lowercase, passed to YouTube as the hl query parameter, e.g. en, de, ro. Affects the language of the returned description and tags. The actor uses en when you leave it out. |
+| `maxItems` | `integer` |  | Ceiling on returned rows. This does NOT change the price: billing is one event per url you send, not per row you get back, so lowering it saves nothing and raising it costs nothing. Present only so a caller can truncate output they do not want to read. |
+| `startUrls` | `array` | yes | YouTube channel URLs, one object per channel. Both forms resolve: a canonical https://www.youtube.com/channel/UC... URL and a handle URL like https://www.youtube.com/@MrBeast. Each url is one billed lookup, so this array's length is what you pay for. Capped at 50 per call; split larger sets across calls. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"youtube.channel","input":{"startUrls":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "UC7epYXoxGQlErIpBOYoCj9A",
+  "url": "https://www.youtube.com/@AIAutomationLabs",
+  "name": "AI Automation Labs",
+  "tags": [
+    "AI Automation",
+    "Artificial Intelligence",
+    "AI tools"
+  ],
+  "type": "channel",
+  "handle": "@AIAutomationLabs",
+  "joinedAt": "2023-05-12",
+  "viewCount": "4328162",
+  "thumbnails": [
+    {
+      "url": "https://yt3.googleusercontent.com/example=s160-c-k-c0x00ffffff-no-rj",
+      "width": 160,
+      "height": 160
+    }
+  ],
+  "videoCount": "66",
+  "description": "Everything related to A.I !! From How to use A.I tools To Creating crazy A.I Art !!",
+  "isFamilySafe": true,
+  "subscriberCount": 56800,
+  "availableCountries": [
+    "US",
+    "GB",
+    "DE",
+    "RO"
+  ]
+}
+```

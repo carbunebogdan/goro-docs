@@ -1,0 +1,106 @@
+---
+title: "Stock and crypto quotes"
+description: "A market snapshot per symbol, around 60 fields in one row: last price, change and percent change, day open, high and low, previous close, pre and post market pr"
+---
+
+A market snapshot per symbol, around 60 fields in one row: last price, change and percent change, day open, high and low, previous close, pre and post market prices, 52 week range, 50 and 200 day averages, volume and average volume, market cap and enterprise value, trailing and forward P/E, price to book, PEG, trailing and forward EPS, beta, dividend rate and yield, ex dividend date, payout ratio, shares outstanding and float, short ratio, revenue and revenue growth, gross, operating and profit margins, return on equity, cash, debt and free cash flow, the analyst consensus with mean and high and low price targets, and the company profile with sector, industry, country, headcount, website and a business summary. Works for stocks, ETFs, crypto pairs, forex pairs, indices and futures. One result, and one billable item, per symbol.
+
+<Note>Use when you already know the symbols and want the current price and where they stand right now: a price check, a watchlist refresh, a valuation and margin snapshot before a deeper pull, or the analyst consensus in the same row as the price. Symbols are Yahoo Finance tickers, so AAPL for a stock, SPY for an ETF, BTC-USD for crypto, EURUSD=X for forex, ^GSPC for an index and GC=F for futures, up to 50 per call. Use finance.screener to FIND symbols by filter or indicator rather than to look one up, finance.history for the price series behind the snapshot, finance.fundamentals for full statements and the analyst detail, news.search for coverage of a name, and trends.search for how much it is being searched for. Figures come from Yahoo Finance's public feeds rather than from an exchange, so prices can lag the tape and thinly covered symbols leave some fields empty.</Note>
+
+## Price
+
+**$0.0030 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tickers` | `array` | yes | Yahoo Finance symbols, or full quote URLs such as https://finance.yahoo.com/quote/AAPL/. Stocks (AAPL), ETFs (SPY), crypto (BTC-USD), forex (EURUSD=X), indices (^GSPC) and futures (GC=F) all work. Exactly one result, and one billable item, per symbol. A symbol Yahoo does not know is simply absent from the results and costs nothing. |
+| `maxItems` | `integer` |  | Optional hard ceiling on rows for the whole run. Rows already equal symbols here, so this only matters as a spend guard on a long list. Leave it out and every symbol is returned. |
+| `operation` | `quotes` |  | Fixed. The underlying source also returns candles, statements, analyst data, option chains, news and symbol search, and those count their rows from different fields, so they have their own endpoints rather than breaking this one's price estimate. Defaults to `"quotes"`. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"finance.quote","input":{"tickers":["AAPL","MSFT","BTC-USD"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "beta": 1.142,
+  "sector": "Technology",
+  "symbol": "NRTH",
+  "country": "United States",
+  "website": "https://example.com",
+  "currency": "USD",
+  "exchange": "NasdaqGS",
+  "industry": "Software - Infrastructure",
+  "longName": "Northgate Labs Incorporated",
+  "pegRatio": 1.84,
+  "forwardPE": 22.409605,
+  "marketCap": 61840000000,
+  "quoteType": "EQUITY",
+  "shortName": "Northgate Labs Inc.",
+  "totalCash": 4180000000,
+  "totalDebt": 5444000000,
+  "forwardEps": 6.62,
+  "shortRatio": 1.94,
+  "trailingPE": 27.114285,
+  "floatShares": 402118344,
+  "marketState": "REGULAR",
+  "payoutRatio": 0.1755,
+  "priceToBook": 8.412201,
+  "trailingEps": 5.47,
+  "dividendRate": 0.96,
+  "freeCashflow": 3216000000,
+  "grossMargins": 0.5218,
+  "totalRevenue": 18422000000,
+  "averageVolume": 5120433,
+  "dividendYield": 0.0064999999,
+  "profitMargins": 0.21440001,
+  "revenueGrowth": 0.121,
+  "exDividendDate": "2026-08-14T00:00:00.000Z",
+  "preMarketPrice": 146.75,
+  "returnOnEquity": 0.3312,
+  "targetLowPrice": 121,
+  "enterpriseValue": 63104000000,
+  "fiftyDayAverage": 141.2284,
+  "fiftyTwoWeekLow": 98.11,
+  "postMarketPrice": 148.4,
+  "targetHighPrice": 190,
+  "targetMeanPrice": 162.4,
+  "fiftyTwoWeekHigh": 163.4,
+  "operatingMargins": 0.28104001,
+  "fullTimeEmployees": 12400,
+  "recommendationKey": "buy",
+  "regularMarketOpen": 146.9,
+  "regularMarketTime": "2026-08-07T20:00:01.000Z",
+  "sharesOutstanding": 417200000,
+  "recommendationMean": 1.9,
+  "regularMarketPrice": 148.22,
+  "averageVolume10days": 4783200,
+  "longBusinessSummary": "Invented sample text. Northgate Labs Incorporated builds observability and data infrastructure software for enterprises. It sells through a direct sales force and cloud marketplaces, and was founded in 2004.",
+  "regularMarketChange": 1.8399963,
+  "regularMarketDayLow": 146.02,
+  "regularMarketVolume": 4182233,
+  "regularMarketDayHigh": 149.11,
+  "twoHundredDayAverage": 129.71355,
+  "numberOfAnalystOpinions": 27,
+  "regularMarketChangePercent": 0.012569374,
+  "regularMarketPreviousClose": 146.38
+}
+```

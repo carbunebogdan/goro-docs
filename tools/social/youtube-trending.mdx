@@ -1,0 +1,80 @@
+---
+title: "YouTube trending"
+description: "The videos on YouTube's trending shelf for one country right now, in rank order, each with view, like and comment counts, duration, category, publish date and t"
+---
+
+The videos on YouTube's trending shelf for one country right now, in rank order, each with view, like and comment counts, duration, category, publish date and the channel behind it.
+
+<Note>Use when the question is what YouTube is pushing RIGHT NOW rather than what matches a search term: spotting a format or topic while it is surfacing, checking whether a niche is having a moment in one market, or sampling what the algorithm currently rewards. This is the trending shelf itself, which is not the same set as a search: it is where a format shows up before anyone searches for it by name. Use youtube.videos for search terms and channel catalogues, trends.search for Google search demand (it cannot be scoped to YouTube), and tiktok.api for the equivalent on TikTok. One country per call, since gl takes a single code, so a five-market sweep is five calls. Price is FLAT per call: 100 videos cost exactly what 5 cost, so always ask for more. Be careful piping this straight into a context window, rows carry full streaming and caption metadata and run roughly 38 KB each.</Note>
+
+## Price
+
+**$0.0750 per event.** That is the rate you pay for each event the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer events costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `gl` | `string` |  | Country whose trending shelf to read, as a lowercase two-letter code, e.g. us, gb, de, ro. One country per call. The actor uses us when you leave it out. |
+| `maxItems` | `integer` |  | How many trending videos to return. This does NOT change the price: the call bills one flat query event whatever the count, verified at 5 and at 100 videos for the identical $0.025. Ask for as many as you can use. Every row is large, so the practical ceiling is what you can afford to read, not what you can afford to buy. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"youtube.trending","input":{}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "dQw4w9WgXcQ",
+  "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "type": "video",
+  "likes": 84120,
+  "title": "I Tested Every Budget Espresso Machine",
+  "views": 1284093,
+  "isLive": false,
+  "channel": {
+    "id": "UCjq4vqhZQm0Wq6bY5Zk3xPA",
+    "url": "https://www.youtube.com/channel/UCjq4vqhZQm0Wq6bY5Zk3xPA",
+    "name": "Counter Culture",
+    "handle": "@counterculture",
+    "subscriberCount": "412K subscribers"
+  },
+  "category": "Howto & Style",
+  "comments": 5310,
+  "duration": 743,
+  "keywords": [
+    "espresso",
+    "coffee gear",
+    "kitchen"
+  ],
+  "isPrivate": false,
+  "isUnlisted": false,
+  "thumbnails": [
+    {
+      "url": "https://i.ytimg.com/vi/example/maxresdefault.jpg",
+      "width": 1280,
+      "height": 720
+    }
+  ],
+  "uploadDate": "2026-08-06T14:02:11-07:00",
+  "description": "Fifteen machines, one kitchen, and a lot of ruined shots.",
+  "publishDate": "2026-08-06T14:02:11-07:00",
+  "isFamilySafe": true,
+  "relativeDate": "2026-08-06T14:02:11-07:00"
+}
+```

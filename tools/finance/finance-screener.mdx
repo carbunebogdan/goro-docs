@@ -1,0 +1,104 @@
+---
+title: "Stock screener with technical indicators"
+description: "Screens a market through TradingView and returns about 65 fields per stock in one row: symbol, exchange qualified symbol, name, exchange, sector, industry, coun"
+---
+
+Screens a market through TradingView and returns about 65 fields per stock in one row: symbol, exchange qualified symbol, name, exchange, sector, industry, country and currency; open, high, low, close, percent and absolute change, volume, 10 and 30 day average volume and relative volume; market cap, P/E, EPS, dividend yield, price to book, price to sales, return on equity and debt to equity; the analyst recommendation as a score from -1 to 1 with a strong buy to strong sell label, plus separate moving average and oscillator scores; RSI, MACD value and signal, stochastic K and D, CCI, ADX with both directional indicators, Williams %R, awesome oscillator, momentum and bull bear power; Bollinger band bounds, parabolic SAR, EMA and SMA at 10, 20, 50 and 200; weekly, monthly, three month, six month, yearly and year to date performance; monthly pivot support, middle and resistance, and daily volatility. Covers 14 markets including the US, UK, Germany, France, Japan, China, India, Korea, Australia, Canada, Brazil, crypto, forex and a global scan. One result, and one billable item, per stock returned.
+
+<Note>Use to FIND instruments rather than to look one up: the oversold large caps in a market by RSI, today's movers, a sector peer set ranked by market cap, or a full technical snapshot of a watchlist in one call. Either name symbols in TradingView form, NASDAQ:AAPL rather than AAPL, or leave them out and let market, minMarketCap, sortBy and sortOrder do the filtering. maxResults is the ceiling on how many stocks come back and it caps a named symbols list too, so it is the number that decides what a call returns and what it costs. Every row is one snapshot with the indicators computed on daily bars, so reach for finance.history when you need the series behind an indicator, finance.quote for the Yahoo view of a symbol you already have, and finance.fundamentals for full statements on a name this turns up. Figures come from TradingView's public scanner rather than from an exchange feed, so prices can be delayed, and coverage and field completeness vary by market.</Note>
+
+## Price
+
+**$0.15 per stock.** That is the rate you pay for each stock the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer stocks costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `market` | `america`, `brazil`, `uk`, `germany`, `france`, `japan`, `china`, `india`, `korea`, `australia`, `canada`, `crypto`, `forex`, `global` | yes | Which market to scan. america covers NASDAQ, NYSE and AMEX. crypto covers pairs across exchanges, forex covers currency pairs, and global scans everything at once. Required here even though the source defaults it to america, because that default answers a crypto or a London question with US equities and charges the same price for it. |
+| `sortBy` | `volume`, `market_cap_basic`, `change`, `Recommend.All`, `RSI`, `name` |  | Which field decides who makes the cut, since maxResults takes the top of this ordering. Recommend.All is the analyst score, RSI with sortOrder asc surfaces the most oversold, change surfaces the movers, market_cap_basic the largest. Defaults to `"volume"`. |
+| `symbols` | `array` |  | Scan only these symbols, in TradingView exchange qualified form such as NASDAQ:AAPL or NYSE:MSFT. Leave it out to scan the whole market through the filters instead. maxResults still applies, so a list longer than it is cut, and every symbol returned is one billable item. |
+| `sortOrder` | `asc`, `desc` |  | Direction of that sort. desc for the largest, the most active or the biggest gainers, asc for the smallest, the most oversold or the biggest losers. Defaults to `"desc"`. |
+| `maxResults` | `integer` |  | How many stocks to return, and the only number that moves the price: one billable item per stock. The source''s own default is 50; this endpoint sends 10 unless you say otherwise, so an unspecified call stays small. Capped at 50 per call, so a wider sweep is several calls with different filters. Defaults to `10`. |
+| `minMarketCap` | `integer` |  | Only return stocks at or above this market capitalisation, in USD. The source uses 0, meaning no filter, when you leave it out. A useful way to keep a broad scan on names that are actually tradeable, for example 1000000000 for a billion. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"finance.screener","input":{"market":"america","maxResults":3}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "adx": 24.7712,
+  "cci": 96.4417,
+  "eps": 5.4665,
+  "low": 146.02,
+  "rsi": 61.4472,
+  "high": 149.11,
+  "name": "Northgate Labs Incorporated",
+  "open": 146.9,
+  "type": "stock",
+  "close": 148.22,
+  "ema10": 146.114,
+  "ema50": 140.4471,
+  "sma20": 143.8815,
+  "sector": "Technology Services",
+  "sma200": 129.7136,
+  "stochD": 70.8104,
+  "stochK": 74.2211,
+  "symbol": "NRTH",
+  "volume": 4182233,
+  "bbLower": 136.4102,
+  "bbUpper": 152.8841,
+  "country": "United States",
+  "peRatio": 27.1143,
+  "perfYTD": 21.64,
+  "currency": "USD",
+  "exchange": "NASDAQ",
+  "industry": "Packaged Software",
+  "perfWeek": 2.11,
+  "perfYear": 38.77,
+  "platform": "tradingview",
+  "macdValue": 1.8842,
+  "marketCap": 61840000000,
+  "perfMonth": 6.42,
+  "scrapedAt": "2026-08-07T20:11:38.204Z",
+  "fullSymbol": "NASDAQ:NRTH",
+  "macdSignal": 1.5231,
+  "perf3Months": 14.08,
+  "pivotMiddle": 147.03,
+  "priceToBook": 8.4122,
+  "avgVolume10d": 4783200.4,
+  "avgVolume30d": 5120433.1,
+  "debtToEquity": 0.7406,
+  "parabolicSAR": 141.2277,
+  "priceToSales": 3.3568,
+  "changePercent": 1.2569,
+  "dividendYield": 0.6477,
+  "pivotSupport1": 142.16,
+  "changeAbsolute": 1.84,
+  "relativeVolume": 0.8743,
+  "returnOnEquity": 33.1204,
+  "volatilityDaily": 1.9042,
+  "pivotResistance1": 151.9,
+  "recommendationMA": 0.6667,
+  "recommendationAll": 0.4909,
+  "recommendationLabel": "buy",
+  "recommendationOscillators": 0.3151
+}
+```

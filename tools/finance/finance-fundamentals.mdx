@@ -1,0 +1,79 @@
+---
+title: "Company fundamentals and analyst view"
+description: "Two views of a company, chosen with operation. fundamentals returns the financial statements as numeric fields, one row per reporting period, annual and quarter"
+---
+
+Two views of a company, chosen with operation. fundamentals returns the financial statements as numeric fields, one row per reporting period, annual and quarterly, about ten periods per company: total revenue, cost of revenue, gross profit, operating expense, R&D, SG&A, operating income, EBIT, EBITDA, net income, basic and diluted EPS, total assets, current assets and liabilities, inventory, receivables, cash, total and long term debt, stockholders equity, retained earnings, working capital, operating, investing and financing cash flow, capital expenditure, dividends paid and free cash flow. analysis returns one row per company with the analyst picture: recommendation key and mean score, the number of opinions, current price, mean, median, high and low price targets, the recommendation trend month by month, EPS and revenue estimate trends, earnings history with surprises, the upgrade and downgrade log, the index trend and Yahoo research insights.
+
+<Note>Use for the numbers behind a company rather than its price: comparing margins, leverage or cash generation across a peer set, tracking revenue and EPS quarter by quarter, or reading what analysts currently expect and how that has moved. Set operation first, because the two answer different questions and one call returns one of them. Symbols are Yahoo Finance tickers, up to 20 per call. Funds and ETFs file no statements, so fundamentals returns no rows for SPY and the like and the call is not billed for them. Use finance.quote when a single summary row per symbol is enough, finance.screener to build the peer set in the first place, and news.search for the coverage around a result. Figures come from Yahoo Finance's public feeds rather than from a filings service, so they can trail an official filing, they can be restated later, and coverage thins outside large listed companies.</Note>
+
+## Price
+
+**$0.0030 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `tickers` | `array` | yes | Yahoo Finance symbols, or full quote URLs. Statements exist for operating companies, so ETFs, funds, indices, crypto and forex return no rows for fundamentals. Up to ten billable rows per symbol for fundamentals, exactly one for analysis. |
+| `maxItems` | `integer` |  | Optional hard ceiling on rows for the whole run, filled in symbol order. Useful as a spend guard on a long list. Leave it out and every period of every symbol is returned. |
+| `operation` | `fundamentals`, `analysis` | yes | Which view you want. fundamentals returns the statements, about ten period rows per company. analysis returns one row per company with ratings, price targets and estimate trends. Required, with no default on purpose: the underlying source falls back to live quotes when this is missing, so a call that meant to ask for statements would be answered, and billed, with snapshots. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"finance.fundamentals","input":{"operation":"fundamentals","tickers":["AAPL","MSFT"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "eBIT": 5177000000,
+  "eBITDA": 6042000000,
+  "period": "annual",
+  "symbol": "NRTH",
+  "endDate": "2025-12-31",
+  "basicEPS": 9.51,
+  "currency": "USD",
+  "inventory": 412000000,
+  "netIncome": 3949000000,
+  "totalDebt": 5444000000,
+  "dilutedEPS": 9.44,
+  "grossProfit": 9615000000,
+  "totalAssets": 27140000000,
+  "freeCashFlow": 3216000000,
+  "longTermDebt": 4720000000,
+  "totalRevenue": 18422000000,
+  "costOfRevenue": 8807000000,
+  "currentAssets": 11208000000,
+  "workingCapital": 4306000000,
+  "operatingIncome": 5177000000,
+  "operatingExpense": 4438000000,
+  "retainedEarnings": 2894000000,
+  "cashDividendsPaid": -401000000,
+  "financingCashFlow": -2740000000,
+  "investingCashFlow": -1188000000,
+  "operatingCashFlow": 4402000000,
+  "accountsReceivable": 3106000000,
+  "capitalExpenditure": -1186000000,
+  "currentLiabilities": 6902000000,
+  "stockholdersEquity": 7351000000,
+  "cashAndCashEquivalents": 4180000000,
+  "researchAndDevelopment": 2611000000,
+  "sellingGeneralAndAdministration": 1827000000,
+  "totalLiabilitiesNetMinorityInterest": 19789000000
+}
+```

@@ -1,0 +1,76 @@
+---
+title: "YouTube channel search"
+description: "YouTube channels matching a topic keyword, ranked by YouTube's own channel search, each with subscriber count, lifetime views, video count, creation date, descr"
+---
+
+YouTube channels matching a topic keyword, ranked by YouTube's own channel search, each with subscriber count, lifetime views, video count, creation date, description and topic tags.
+
+<Note>Use when you need to find WHO covers a topic on YouTube and do not have a handle yet: building a creator shortlist, mapping who owns a niche, or sizing a competitive field before you commit. Returns channels, not videos, so it does not reward whoever titled one video well. Billing is one unit per search TERM and the rows are free, so ask for a large maxItems on few terms rather than the reverse. Use youtube.channel when you already know the handle, youtube.similar_channels when you have one channel and want others like it, and youtube.videos when you want videos rather than the channels behind them.</Note>
+
+## Price
+
+**$0.0030 per event.** That is the rate you pay for each event the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer events costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `gl` | `string` |  | Two-letter country code, lowercase, passed to YouTube as the gl query parameter. Changes which channels rank for the term, so it is the field to set when you want the creators in one market rather than the global set. The actor uses us when you leave it out. |
+| `hl` | `string` |  | Language code, lowercase, passed to YouTube as the hl query parameter, e.g. en, de, ro. Affects the language of returned descriptions and tags. The actor uses en when you leave it out. |
+| `sort` | `r`, `ra`, `u`, `v` |  | Result ordering: r relevance, ra rating, u upload date, v view count. Defaulted to r and always sent, because the actor returns ZERO results and charges nothing when this field is absent, which is indistinguishable from a topic having no channels. Change it freely, but do not send it empty. Defaults to `"r"`. |
+| `keywords` | `array` | yes | Search terms, exactly as you would type them into YouTube's search box. Each term is one billed unit and maxItems applies to EACH term, so this array's length is what you pay for. Capped at 10 terms per call. |
+| `maxItems` | `integer` |  | Ceiling on channels returned per term. This does NOT change the price: billing is one event per search term, not per channel returned, so a high value costs exactly what a low one costs. Ask for more rather than less. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"youtube.channel_search","input":{"keywords":["example"]}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "id": "UC7epYXoxGQlErIpBOYoCj9A",
+  "url": "https://www.youtube.com/@AIAutomationLabs",
+  "name": "AI Automation Labs",
+  "tags": [
+    "AI Automation",
+    "Artificial Intelligence",
+    "AI tools"
+  ],
+  "type": "channel",
+  "handle": "@AIAutomationLabs",
+  "joinedAt": "2023-05-12",
+  "viewCount": "4328162",
+  "thumbnails": [
+    {
+      "url": "https://yt3.googleusercontent.com/example=s160-c-k-c0x00ffffff-no-rj",
+      "width": 160,
+      "height": 160
+    }
+  ],
+  "videoCount": "66",
+  "description": "Everything related to A.I !! From How to use A.I tools To Creating crazy A.I Art !!",
+  "isFamilySafe": true,
+  "subscriberCount": 56800,
+  "availableCountries": [
+    "US",
+    "GB",
+    "DE",
+    "RO"
+  ]
+}
+```

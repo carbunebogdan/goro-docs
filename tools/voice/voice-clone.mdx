@@ -5,7 +5,7 @@ description: "Create a reusable voice model from one or more recordings of a per
 
 Create a reusable voice model from one or more recordings of a person speaking, and get back a voice_id you can pass to voice.speak. Requires an explicit consent attestation on every call.
 
-<Note>Use when you need the SAME custom voice repeatedly: a narrator for a series, a brand voice, a character. Give 1 to 20 public https links to clean recordings of one speaker, at least ten seconds each; more samples and more variety give a closer match. The voice belongs to your workspace and no other workspace can use it. It stays available until you delete it with voice.delete. You must set consent_attested to true, which is a statement that the person whose voice this is has agreed to it being cloned: read the field description before you send it, and do not send it on a voice you have no consent for.</Note>
+<Note>Use when you need the SAME custom voice repeatedly: a narrator for a series, a brand voice, a character. Reference recordings arrive two ways, mixable in one call, 1 to 20 in total: sample_urls, public http or https links; or sample_handles, for recordings the user has on their device or can make on the spot. For handles, call create_upload with content_type "audio/*" and give the user upload_page_url: that page lets them RECORD with their microphone right there, or pick an audio file, and the exact format is read from the file itself. At least ten seconds of clear speech per clip; 30 to 60 seconds of natural speech in a quiet room gives the closest match, and several varied clips beat one. The voice belongs to your workspace and no other workspace can use it. It stays available until you delete it with voice.delete. You must set consent_attested to true, which is a statement that the person whose voice this is has agreed to it being cloned: read the field description before you send it, and do not send it on a voice you have no consent for.</Note>
 
 ## Price
 
@@ -18,7 +18,8 @@ Nothing to reconcile afterwards and no ceiling to read.
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
 | `label` | `string` | yes | A name for this voice so you can recognise it later in voice.list. Not used by the model, only for your own reference. |
-| `sample_urls` | `array` | yes | Public http or https links to recordings of the SAME speaker. At least ten seconds of clear speech per clip; several clips capture more range than one. Links to private, internal or loopback addresses are refused. Up to 25 MB per file and 100 MB in total. |
+| `sample_urls` | `array` |  | Public http or https links to recordings of the SAME speaker. At least ten seconds of clear speech per clip; several clips capture more range than one. Links to private, internal or loopback addresses are refused. Up to 25 MB per file and 100 MB in total. May be combined with sample_handles; together they must name 1 to 20 recordings. |
+| `sample_handles` | `array` |  | Upload handles for recordings of the SAME speaker, from create_upload with content_type "audio/*". The upload page lets the user record with their microphone on the spot or pick an audio file (MP3, WAV, M4A, OGG, WEBM or FLAC, up to 10 MB each); redeem each handle within 10 minutes of its upload finishing. May be combined with sample_urls; together they must name 1 to 20 recordings. |
 | `consent_attested` | `boolean` | yes | Must be set to true. By setting it you attest that the person whose voice these recordings capture has given documented consent to have their voice cloned and synthesised for this use, and that you can produce that consent on request. A recording being public is not consent, and neither is owning the rights to the recording: those are different permissions and you need the one from the person. What you attest and when is recorded against the voice. See the voice clause of the Acceptable Use Policy. |
 
 <Note>
@@ -32,7 +33,7 @@ Nothing to reconcile afterwards and no ceiling to read.
 curl -X POST https://api.usegoro.ai/v1/run \
   -H "Authorization: Bearer $GORO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"slug":"voice.clone","input":{"label":"Narrator, warm male","sample_urls":["https://example.com/media/narrator-take-1.mp3"],"consent_attested":true}}'
+  -d '{"slug":"voice.clone","input":{"label":"Narrator, warm male","consent_attested":true}}'
 ```
 
 ## Response

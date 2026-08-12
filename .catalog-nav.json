@@ -14,6 +14,16 @@
     ]
   },
   {
+    "group": "Markets and finance",
+    "pages": [
+      "tools/finance/finance-fundamentals",
+      "tools/finance/finance-history",
+      "tools/finance/finance-options",
+      "tools/finance/finance-quote",
+      "tools/finance/finance-screener"
+    ]
+  },
+  {
     "group": "Image generation",
     "pages": [
       "tools/image/image-grok",
@@ -73,8 +83,11 @@
       "tools/social/twitter-followers",
       "tools/social/twitter-profile",
       "tools/social/twitter-search",
+      "tools/social/youtube-channel_search",
       "tools/social/youtube-comments",
+      "tools/social/youtube-similar_channels",
       "tools/social/youtube-transcript",
+      "tools/social/youtube-trending",
       "tools/social/youtube-videos"
     ]
   },

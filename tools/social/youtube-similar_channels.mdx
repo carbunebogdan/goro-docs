@@ -1,0 +1,78 @@
+---
+title: "YouTube similar channels"
+description: "Channels similar to one or more seed channels, ranked by what they actually publish rather than by keyword, each with a 0 to 1 similarity score, subscriber and "
+---
+
+Channels similar to one or more seed channels, ranked by what they actually publish rather than by keyword, each with a 0 to 1 similarity score, subscriber and lifetime view totals, recent average views split across long-form and Shorts, country, join date and verification status.
+
+<Note>Use to map a competitive field from one example: find who else serves a creator's audience, build a creator shortlist from a channel that already converts, or find the equivalent creator in another country. Seed with CHANNEL IDs in UC form, not handles, and get them from youtube.channel or youtube.channel_search, both of which return the id you need. Price is the thing to weigh before calling: $0.36 per matched channel, far above every other row in this catalog, so ask for the number you will actually read. limit is the number you pay for, minimum 10, maximum 25 per call. Filters (subscriber bands, average views, country, verified, has-public-email) narrow the ranking before it is billed, so use them rather than over-fetching and discarding. HasPublicEmail is a true/false flag only, this row never returns an actual email address.</Note>
+
+## Price
+
+**$0.36 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `limit` | `integer` |  | How many similar channels to return, and EXACTLY what you pay for at $0.36 each. The minimum is 10 rather than 1 because this actor refuses any run whose cost cap is under $2.00, and a smaller request would have to be sent uncapped. The maximum is 25 because a full-size request already holds $18. |
+| `countries` | `array` |  | Only channels based in these countries, as full names as they appear in the Country output field, e.g. United States. This is the field to use when looking for a creator's equivalent in another market. |
+| `only_verified` | `boolean` |  | Only channels with a YouTube verification badge. Off unless you set it. |
+| `only_has_email` | `boolean` |  | Only channels that expose a public contact email. The address itself is NOT returned, only the HasPublicEmail flag, so this narrows an outreach list rather than building one. |
+| `max_subscribers` | `integer` |  | Only channels with at most this many subscribers. Pair with min_subscribers to target a size band, e.g. micro-creators. |
+| `max_total_views` | `integer` |  | Only channels with at most this many lifetime views. |
+| `min_subscribers` | `integer` |  | Only channels with at least this many subscribers. Applied before billing. |
+| `min_total_views` | `integer` |  | Only channels with at least this many lifetime views. |
+| `max_total_videos` | `integer` |  | Only channels that have published at most this many videos. |
+| `min_total_videos` | `integer` |  | Only channels that have published at least this many videos. Useful for excluding dormant or one-hit channels. |
+| `seed_channel_ids` | `array` | yes | YouTube channel IDs in UC form, e.g. UCX6OQ3DkcsbYNE6H8uQQuVA. Handles do NOT resolve here; take the id from youtube.channel or youtube.channel_search. Seeding several channels finds the intersection of what they have in common, which narrows a niche rather than widening it. Seeds are free, only returned matches are billed. |
+| `exclude_countries` | `array` |  | Drop channels based in these countries. |
+| `exclude_channel_ids` | `array` |  | Channel IDs to leave out of the results, in UC form. Use it to page through a niche without paying for the same channels twice: pass everything you already have. |
+| `max_avg_views_shorts` | `integer` |  | Only channels whose recent Shorts average at most this many views. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"youtube.similar_channels","input":{"seed_channel_ids":["example"],"limit":10}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "Tags": [
+    "coffee",
+    "espresso",
+    "kitchen gear"
+  ],
+  "Avatar": "https://yt3.googleusercontent.com/example=s800-c-k-c0x00ffffff-no-rj",
+  "Country": "United States",
+  "JoinDate": "2019-03-14",
+  "ChannelId": "UCjq4vqhZQm0Wq6bY5Zk3xPA",
+  "ChannelUrl": "https://www.youtube.com/@counterculture",
+  "FusedScore": 0.8214954206761725,
+  "IsVerified": true,
+  "TotalViews": 58204113,
+  "ChannelName": "Counter Culture",
+  "Description": "Coffee gear tested properly. New teardown every Thursday.",
+  "ChannelHandle": "@counterculture",
+  "HasPublicEmail": true,
+  "SubscriberCount": 412000,
+  "IsFamilyFriendly": true,
+  "TotalVideosCount": 264,
+  "AvgViewsRecentShorts": 421900,
+  "AvgViewsRecentVideos": 184300
+}
+```

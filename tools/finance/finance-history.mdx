@@ -1,0 +1,62 @@
+---
+title: "Historical price candles"
+description: "OHLCV candles for the symbols you name, one row per candle: symbol, date, open, high, low, close, adjusted close, volume, the interval it was cut at, the curren"
+---
+
+OHLCV candles for the symbols you name, one row per candle: symbol, date, open, high, low, close, adjusted close, volume, the interval it was cut at, the currency and the exchange. Intervals run from 1 minute to 3 months, and the window is either a named range from 1 day to max or an explicit start and end date. Turning on events adds a row per dividend, with its amount, and a row per stock split, with its ratio. Works for stocks, ETFs, crypto pairs, forex pairs, indices and futures. One result, and one billable item, per row.
+
+<Note>Use when you need the series rather than a single snapshot: backtests, drawdown and volatility maths, correlations across symbols, charting, or total return work that needs dividends and splits. Rows here are candles, not symbols, so a year of daily data is about 252 rows per symbol and maxItems is the ceiling you set on the whole call. Two things follow from that and both are worth knowing before the first call: the ceiling is filled in symbol order, so a call that runs out of room returns nothing at all for the later symbols, which makes one symbol per call the right shape for a long series; and intraday intervals only reach as far back as Yahoo keeps them, roughly 30 days at 1 minute and 2 years at 1 hour, so an old window at a fine interval comes back short or empty. Use finance.quote for where a symbol stands right now and finance.screener to pick the symbols first. Figures come from Yahoo Finance's public feeds rather than from an exchange, so the most recent candle can be delayed or still forming.</Note>
+
+## Price
+
+**$0.0030 per result.** That is the rate you pay for each result the call returns, so the total depends on how many it produces.
+
+Billing follows actual usage, so a call that returns fewer results costs less, and a call that costs nothing to serve is free. `discover` and `inspect` also return a ceiling for your specific request, which is a maximum you will never be charged above.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `range` | `1d`, `5d`, `1mo`, `3mo`, `6mo`, `1y`, `2y`, `5y`, `10y`, `ytd`, `max` |  | How far back to fetch, relative to today. The source uses 1mo when you leave it out, and ignores this entirely when startDate is set. |
+| `endDate` | `string` |  | Explicit window end, YYYY-MM-DD. Defaults to today, and is only read when startDate is set. |
+| `tickers` | `array` | yes | Yahoo Finance symbols, or full quote URLs. Stocks (AAPL), ETFs (SPY), crypto (BTC-USD), forex (EURUSD=X), indices (^GSPC) and futures (GC=F) all work. Capped at 10 because every symbol multiplies the candle count and the maxItems ceiling is shared across all of them. |
+| `interval` | `1m`, `2m`, `5m`, `15m`, `30m`, `60m`, `90m`, `1h`, `1d`, `5d`, `1wk`, `1mo`, `3mo` |  | Candle size. The source uses 1d when you leave it out. Finer intervals mean more rows for the same window, so they cost proportionally more: a month at 1d is about 22 rows and the same month at 1h is about 150. Intraday sizes are only available for recent windows, roughly 30 days at 1m and 2 years at 1h. |
+| `maxItems` | `integer` |  | Total rows to return across every symbol in this call, and the only number that moves the price: one billable item per row. The default of 250 is about a year of daily candles for one symbol. It is filled in symbol order rather than shared out, so a cap smaller than the request returns the first symbols complete and the later ones not at all, and the run can publish a few rows past the cap when several symbols are in flight. Defaults to `250`. |
+| `operation` | `historical` |  | Fixed. The underlying source defaults to live quotes, so this is sent on every call: without it a request for candles would be answered, and billed, as snapshots. Defaults to `"historical"`. |
+| `startDate` | `string` |  | Explicit window start, YYYY-MM-DD. Overrides range when set. |
+| `includeEvents` | `boolean` |  | Also emit one row per dividend payment and one per stock split inside the window. Off unless you set it. Those rows carry type dividend or split instead of candle, and each is billed like any other row. |
+
+<Note>
+  Goro forwards your input to the underlying tool unchanged, so any field the
+  tool accepts works here even if it is not listed above.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"finance.history","input":{"tickers":["AAPL"],"maxItems":10}}'
+```
+
+## Response
+
+One row of the response. Values are illustrative.
+
+```json
+{
+  "low": 146.02000427246094,
+  "date": "2026-08-06T13:30:00.000Z",
+  "high": 149.11000061035156,
+  "open": 146.90000915527344,
+  "type": "candle",
+  "close": 148.22000122070312,
+  "symbol": "NRTH",
+  "volume": 4182233,
+  "adjClose": 148.22000122070312,
+  "currency": "USD",
+  "exchange": "NMS",
+  "interval": "1d"
+}
+```
