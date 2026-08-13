@@ -19,7 +19,7 @@ Billing follows actual usage, so a call that returns fewer posts costs less, and
 | --- | --- | --- | --- |
 | `username` | `array` | yes | Instagram username, profile URL, or post URL. One target per call: resultsLimit applies per target, so batching several here would bill past the hold sized for this request. |
 | `resultsLimit` | `integer` |  | Maximum posts per profile Defaults to `20`. |
-| `dataDetailLevel` | `basicData`, `detailedData` |  | detailedData is billed extra at $0.0008 per post Defaults to `"basicData"`. |
+| `dataDetailLevel` | `basicData`, `detailedData` |  | detailedData is billed extra at $0.008 per post Defaults to `"basicData"`. |
 | `skipPinnedPosts` | `boolean` |  |  Defaults to `false`. |
 | `onlyPostsNewerThan` | `string` |  | YYYY-MM-DD, ISO datetime, or relative like "3 months" |
 
