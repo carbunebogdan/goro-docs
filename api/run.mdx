@@ -11,6 +11,10 @@ The only endpoint that spends money. Goro validates your input, holds an
 amount sized from your request, runs the tool, then charges what it actually
 cost and releases the rest.
 
+Running a tool needs an active plan, Build or Scale. Without one this answers
+`402 subscription_required` before anything is held, and nothing is charged.
+See [Pricing](/pricing#plan-rules).
+
 ## Request
 
 | Field | Type | Required | Notes |
@@ -181,7 +185,8 @@ on the tool's `price.type`:
 | --- | --- | --- |
 | 400 | `validation_error` | `slug` missing, `input` not an object, or the input failed the tool's schema. Carries `errors` |
 | 401 | `unauthorized` | Missing or invalid API key |
-| 402 | `insufficient_funds` | The wallet cannot cover the hold. Carries `top_up_url` and `required_micro` |
+| 402 | `subscription_required` | The workspace has no active plan. Carries `billing_url` and `top_up_url`. Nothing is held |
+| 402 | `insufficient_funds` | The wallet cannot cover the hold. Carries `top_up_url`, `required_micro`, `plan` and `renews_at` |
 | 402 | `budget_exceeded` | A workspace budget cap would be breached. Carries `period`, `cap_micro`, `spent_micro` |
 | 404 | `not_found` | Unknown or inactive slug |
 | 502 | `provider_error` | The tool failed or timed out. Body as shown above |

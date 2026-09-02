@@ -46,14 +46,22 @@ tokens last 30 days and rotate on every use.
   [OAuth quickstart](/guide/quickstart-oauth).
 </Note>
 
+<Note>
+  Connecting does not mean the workspace can run tools yet. `discover_tools`,
+  `inspect_tool` and `wallet_balance` work right away. `run_tool` and
+  `create_upload` need an active plan, Build or Scale, and answer
+  `subscription_required` until the workspace has one. Pick a plan at
+  [app.usegoro.ai/billing](https://app.usegoro.ai/billing).
+</Note>
+
 ## 3. The eight tools
 
 | Tool | Scope | When the agent calls it |
 | --- | --- | --- |
 | `discover_tools` | `tools:read` | First, whenever the task needs live or external data and the exact slug is unknown |
 | `inspect_tool` | `tools:read` | Before running a tool whose input shape is not already known |
-| `create_upload` | `tools:read` | Before `run_tool`, whenever the tool needs a file. It spends nothing |
-| `run_tool` | `tools:run` | To actually execute a tool. This spends money |
+| `create_upload` | `tools:read` | Before `run_tool`, whenever the tool needs a file. Needs an active plan, even though it spends nothing |
+| `run_tool` | `tools:run` | To actually execute a tool. Needs an active plan. This spends money |
 | `get_run` | `tools:read` | To poll a `run_tool` call that came back with a `run_id` |
 | `wallet_balance` | `tools:read` | To check available funds, or after an `insufficient_funds` error |
 | `remember_tool_choice` | `tools:read` | Only when you explicitly say a choice should stick. It spends nothing |
@@ -112,8 +120,10 @@ slug, so there is nothing for anyone to pick.
 that same response. A slower one returns a `run_id` and an explicit
 instruction to poll `get_run` until the status is terminal.
 
-`wallet_balance` returns the available balance and a `top_up_url`, which is
-what an agent should surface to a human when funds run out.
+`wallet_balance` returns the available balance, the workspace's `plan`, the
+unexpired included credit, `renews_at` and a `top_up_url`. The URL and, on a
+plan, the renewal date are what an agent should surface to a human when funds
+run out.
 
 ### Sending a file
 
@@ -139,7 +149,8 @@ instructions covers both surfaces.
 | `code` | What the agent should do |
 | --- | --- |
 | `validation_error` | Read the `errors` array, fix every field, retry once |
-| `insufficient_funds` | Stop. Tell the human the amount and the `top_up_url` |
+| `subscription_required` | Stop. The workspace has no active plan. Tell the human to pick one at the `billing_url` in the body |
+| `insufficient_funds` | Stop. Tell the human the amount, the `top_up_url` and, if `renews_at` is set, when included credit returns |
 | `budget_exceeded` | Stop. The wallet is fine, a spend cap is blocking. Do not ask for a top-up |
 | `not_found` | The slug does not exist. Run `discover_tools` again |
 | `forbidden` | The token is missing the scope the tool needs. Reauthorise |

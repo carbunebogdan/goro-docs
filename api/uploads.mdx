@@ -11,6 +11,10 @@ Mints an upload handle and a URL you PUT a file to. It costs nothing, spends
 nothing and writes no run row. One thing in the catalog takes a file today: the
 starting image a [video endpoint](/tools/video/video-grok) animates.
 
+Creating an upload still needs an active plan, the same as running a tool:
+without one this answers `402 subscription_required`, even though the call
+itself is free. See [Pricing](/pricing#plan-rules).
+
 ## Why the handle exists
 
 Tool arguments pass through a model's context window exactly like tool results
@@ -242,6 +246,7 @@ Minting a handle can fail in two ways.
 | --- | --- | --- |
 | 400 | `validation_error` | `content_type` is missing, or is not one of the three accepted types |
 | 401 | `unauthorized` | Missing or invalid API key |
+| 402 | `subscription_required` | The workspace has no active plan. Carries `billing_url` and `top_up_url` |
 
 Everything else surfaces on the run that redeems the handle, and all of it is
 checked before the hold is placed, so none of it charges you.

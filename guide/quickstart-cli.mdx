@@ -10,11 +10,16 @@ catalog, and the dashboard shows what every call cost.
 ## 1. Sign in
 
 Go to [app.usegoro.ai](https://app.usegoro.ai) and sign in with Google or with
-an emailed code. A workspace and a wallet are created for you, with $1 in
-promotional credit that lasts 30 days. That is enough for a few hundred small
-calls, so you can try things before adding a card.
+an emailed code. A workspace and a wallet are created for you.
 
-## 2. Create a key
+## 2. Pick a plan
+
+Running anything, even your first call, needs an active plan. Open
+**Billing** and subscribe to Build ($19 a month, $25 of included credit) or
+Scale ($99 a month, $150 of included credit). Signing up and browsing the
+catalog are free; running a tool is not.
+
+## 3. Create a key
 
 Open **API keys** and create one. You see the full key exactly once, at
 creation, so copy it then. Goro stores only a hash of it, which means we cannot
@@ -31,7 +36,7 @@ curl https://api.usegoro.ai/v1/whoami \
   -H "Authorization: Bearer $GORO_API_KEY"
 ```
 
-## 3. Find a tool
+## 4. Find a tool
 
 You do not need to know the catalog. Describe what you want.
 
@@ -46,7 +51,7 @@ Each result carries a slug, guidance on when to use it, and a price. You can
 also browse the same catalog under **Tools** in the dashboard, or in the
 [tool reference](/tools/overview) here.
 
-## 4. See what it takes
+## 5. See what it takes
 
 ```bash
 curl -X POST https://api.usegoro.ai/v1/inspect \
@@ -58,7 +63,7 @@ curl -X POST https://api.usegoro.ai/v1/inspect \
 `inspect` returns the tool's real input schema and a `sample_input` you can
 send almost as-is.
 
-## 5. Run it
+## 6. Run it
 
 ```bash
 curl -X POST https://api.usegoro.ai/v1/run \
@@ -88,7 +93,7 @@ curl https://api.usegoro.ai/v1/runs/$RUN_ID \
   if you want to keep it.
 </Note>
 
-## 6. Watch the money
+## 7. Watch the money
 
 ```bash
 curl https://api.usegoro.ai/v1/wallet/balance \
@@ -99,12 +104,13 @@ The dashboard covers the same ground with more context:
 
 | Page | What it is for |
 | --- | --- |
-| **Wallet** | Balance, top-ups (minimum $5), the full ledger, and auto reload |
+| **Wallet** | Your plan, one-time top-ups (minimum $5), the full ledger, and the Stripe portal for your card |
 | **Usage** | What you have spent over time, run by run |
 | **Budgets** | A daily or monthly cap, set to block calls or just notify you |
 | **API keys** | Create and revoke keys. Revoking takes effect immediately |
 
-Auto reload is off unless you turn it on. Saving a card does not enable it.
+A plan renews on its date, a top-up happens when you make one, and nothing
+else charges your card. Nothing is ever charged while you are not on the page.
 
 <Columns cols={2}>
   <Card title="Full API reference" icon="code" href="/api/overview">

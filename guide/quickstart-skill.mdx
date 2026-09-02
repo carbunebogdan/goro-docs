@@ -13,9 +13,10 @@ MCP client, use the [MCP quickstart](/guide/quickstart-mcp) instead.
 
 ## 1. Get a key
 
-Create a workspace at [app.usegoro.ai](https://app.usegoro.ai) and generate an
-API key. New workspaces start with a small promotional balance, so the agent
-can make real calls before you add a card.
+Create a workspace at [app.usegoro.ai](https://app.usegoro.ai), pick a plan
+under **Billing** (Build or Scale), and generate an API key. Running a tool
+needs an active plan: without one every call to `run` answers `402
+subscription_required`, so pick a plan before you wire up the agent.
 
 Put it where your agent keeps secrets, conventionally as `GORO_API_KEY`.
 
@@ -37,7 +38,7 @@ The short version below is the same contract, condensed.
 ````markdown
 # Goro
 
-Goro is a tool gateway. One key, one prepaid balance, pay per call. You never
+Goro is a tool gateway. One key, one balance, pay per call. You never
 sign up for individual providers or hold their API keys.
 
 Base URL: https://api.usegoro.ai
@@ -94,8 +95,11 @@ Auth: send `Authorization: Bearer $GORO_API_KEY` on every request.
 - Amounts come as integer micro-USD (1 USD = 1,000,000) plus a human `_usd`
   string. Do maths on the integers.
 - Failed, stopped and timed-out calls are never charged. Retrying is safe.
+- On 402 `subscription_required`, the workspace has no active plan. Stop and
+  tell your human to pick one at the `billing_url` in the body. Do not retry.
 - On 402 `insufficient_funds`, stop and tell your human the amount and the
-  `top_up_url` in the body. Do not keep retrying.
+  `top_up_url` in the body. If the body's `renews_at` is set, say that the
+  plan's included credit comes back on that date. Do not keep retrying.
 - On 402 `budget_exceeded`, the wallet is fine and a spend cap is the blocker.
   Say that instead of asking for a top-up.
 

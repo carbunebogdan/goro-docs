@@ -16,31 +16,51 @@ curl https://api.usegoro.ai/v1/wallet/balance \
 
 ```json
 {
+  "plan": "build",
   "balance_micro": 4250000,
-  "promo_micro": 1000000,
-  "available_micro": 5250000,
+  "promo_micro": 18400000,
+  "included_remaining_micro": 18400000,
+  "available_micro": 22650000,
   "balance_usd": "$4.25",
-  "promo_usd": "$1.00",
-  "available_usd": "$5.25"
+  "promo_usd": "$18.40",
+  "included_remaining_usd": "$18.40",
+  "available_usd": "$22.65",
+  "renews_at": "2026-10-02T09:14:07.000Z"
 }
 ```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `balance_micro`, `balance_usd` | integer, string | Cash you topped up |
-| `promo_micro`, `promo_usd` | integer, string | Promotional credit. Reads zero once expired |
-| `available_micro`, `available_usd` | integer, string | Cash plus promo. What you can spend right now |
+| `plan` | string | `free`, `build` or `scale`. `free` means the workspace has never subscribed, or its plan has ended |
+| `balance_micro`, `balance_usd` | integer, string | Cash you topped up. Never expires |
+| `promo_micro`, `promo_usd` | integer, string | Credit that expires: included plan credit while you are on a plan, or promotional credit Goro has granted by hand otherwise. Reads zero once expired |
+| `included_remaining_micro`, `included_remaining_usd` | integer, string | The unexpired included credit from the current plan period. Zero on a workspace with no plan |
+| `available_micro`, `available_usd` | integer, string | Cash plus unexpired included or promo credit. What you can spend right now |
+| `renews_at` | string or null | ISO 8601. When the plan renews and a fresh cycle of included credit lands. `null` on the Free plan |
+| `plan_name` | string | `Free`, `Build` or `Scale`, for display |
+| `plan_ending` | boolean | `true` when the plan is cancelled and `renews_at` is the date it ends instead of renews |
+| `top_up_url`, `billing_url` | string | The same address: the Billing page, where a plan or one-time credit can be added. `top_up_url` is the historical name and stays |
 
 `available_micro` is the number to check before a run. Anything currently held
 by an in-flight run has already left `balance_micro`, so the available figure
 never double-counts a run you have not settled yet.
 
-Promotional credit is spent before cash, and it expires. An expired promo drops
-out of the balance automatically.
+**A workspace with `plan: "free"` cannot run tools.** It keeps its wallet,
+including any cash or promotional credit sitting on it, but `POST /v1/run` and
+`POST /v1/uploads` answer `402 subscription_required` until it subscribes.
+Reading the balance, `discover` and `inspect` all work regardless of plan.
+
+Promotional credit is spent before cash, and it expires. Goro grants it by
+hand, for support or goodwill, rather than automatically at signup. An expired
+promo drops out of the balance automatically. Promotional credit and included
+plan credit share the same expiring bucket: on a plan, `included_remaining_micro`
+is the period's included credit, it is spent before cash in the same way, and
+it expires at the end of the period rather than rolling over. The next cycle
+lands at `renews_at`.
 
 This is also the fastest check an agent can make after a `402
 insufficient_funds`: it tells you exactly how much is there so you can tell a
-human what to top up.
+human what to top up, or when the plan's included credit comes back.
 
 ## Activities
 
@@ -100,7 +120,7 @@ curl "https://api.usegoro.ai/v1/wallet/activities?limit=3" \
 | `amount_micro`, `amount_usd` | integer, string | The size of this entry, unsigned |
 | `balance_after_micro`, `balance_after_usd` | integer, string | Wallet balance after this entry |
 | `run_id` | string or null | The run this entry belongs to, for run entries |
-| `stripe_ref` | string or null | The Stripe reference, for top-ups and refunds |
+| `stripe_ref` | string or null | The Stripe reference: the payment for a top-up or refund, the invoice id for plan credit |
 | `note` | string or null | Free text, when there is any |
 | `created_at` | string | ISO 8601 |
 
@@ -110,6 +130,7 @@ curl "https://api.usegoro.ai/v1/wallet/activities?limit=3" \
 | --- | --- |
 | `credit` | A top-up landed |
 | `promo` | Promotional credit was granted |
+| `plan_credit` | One billing cycle of included plan credit landed. `stripe_ref` is the Stripe invoice id |
 | `debit_hold` | A run reserved funds. The full amount leaves the balance here |
 | `debit_capture` | A run was charged. Records what the run actually cost |
 | `hold_release` | The unused part of a hold came back |

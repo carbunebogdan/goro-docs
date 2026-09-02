@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Goro",
-  "description": "One connection gives your agent search, scraping and enrichment across the real world. One balance, pay per call, no subscription.",
+  "description": "One connection gives your agent search, scraping and enrichment across the real world. One balance. Plans that include more credit than they cost, or pay per call.",
   "colors": {
     "primary": "#57694a",
     "light": "#7d8f6e",

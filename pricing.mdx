@@ -1,12 +1,32 @@
 ---
 title: "Pricing"
-description: "What a call costs: an exact price where one exists, a rate and a ceiling where it cannot exist, and never a charge above the ceiling."
+description: "Plans that include more credit than they cost, one-time top-ups, and what a call costs: an exact price where one exists, a rate and a ceiling where it cannot exist, and never a charge above the ceiling."
 ---
 
-## Pay per call, no subscription
+## Plans
 
-There is no plan and no seat. You top up a balance, and each call draws from
-it. Unused balance stays yours.
+One balance, and every call draws from it. Running a tool needs an active
+plan. A plan fills the balance every month with more credit than the plan
+costs, and once you are on one, a one-time top-up adds more credit whenever
+you like. Credit you bought stays yours until you spend it.
+
+Signing up is free, and so is looking around: browsing the catalog,
+`discover`, `inspect`, and reading your runs and balance never need a plan.
+
+| | Build | Scale |
+| --- | --- | --- |
+| Price | $19 a month | $99 a month |
+| Included credit | $25 every billing period | $150 every billing period |
+| Price per call | The tool's published price | The same |
+| One-time top-ups | $5, $20, $100, or any amount from $5 to $10,000 | The same |
+| Tools, budgets, MCP, API, CLI | Everything | Everything |
+
+Three rules carry most of the weight. Included credit lands when Stripe
+confirms the invoice paid and expires at the end of that billing period, so it
+does not roll over. Purchased credit never expires, and it is available only
+to a workspace with an active plan, as overage once included credit runs out.
+Nothing is ever charged to a card while you are not on the page. The rest is
+under [Plan rules](#plan-rules) below.
 
 ## Three ways a tool prices
 
@@ -113,8 +133,9 @@ nothing.
 A hold reserves balance, it does not spend it. If a call fails, times out, or
 you stop it, the whole hold is released and nothing is charged.
 
-Your available balance is what you can spend right now: your topped-up cash,
-plus any promotional credit, minus anything currently held by a running call.
+Your available balance is what you can spend right now: the credit you bought,
+plus any unexpired included or promotional credit, minus anything currently
+held by a running call.
 
 ## Budgets
 
@@ -123,13 +144,59 @@ hitting it blocks further calls or just notifies you. The cap is enforced when
 the hold is taken, so a call that would breach it never runs. A blocked call
 answers `402` with the code `budget_exceeded`.
 
-## Auto reload
+## Plan rules
 
-Optionally, when your balance falls below a threshold you set, Goro charges
-your saved card to bring it back up to a target. That keeps a long-running
-agent from stopping mid-task because the balance ran out.
+Running a tool needs an active plan, Build or Scale, with a Stripe status of
+trialing, active, or past_due (Stripe is still retrying the card, and credit
+already granted keeps the expiry it was given). Signing up, browsing the
+catalog, `discover`, `inspect`, and reading your runs and balance never need
+one. Without an active plan, running a tool (`POST /v1/run`, MCP `run_tool`,
+the CLI `run`) and creating an upload (`POST /v1/uploads`, MCP
+`create_upload`) answer `402` with the code `subscription_required`, and
+nothing is charged or held:
 
-Saving a card does not enable this. You turn it on explicitly.
+```json
+{
+  "code": "subscription_required",
+  "message": "Goro needs an active plan to run tools. Pick one at https://app.usegoro.ai/billing",
+  "billing_url": "https://app.usegoro.ai/billing",
+  "top_up_url": "https://app.usegoro.ai/billing"
+}
+```
+
+A workspace that has never subscribed keeps its wallet, including any
+purchased or promotional credit sitting on it. It just cannot spend that
+credit on a run until it picks a plan.
+
+Included credit lands in your balance when Stripe confirms the invoice paid,
+and expires at the end of that billing period. What you have not spent by then
+is gone. It does not roll over. Purchased credit never expires, and it is
+sold only to a workspace with an active plan: a checkout for one-time credit
+also answers `subscription_required` on a workspace with no plan.
+
+Included credit is spent before purchased credit, so a top-up you made sits
+untouched until the period's included credit is used up.
+
+When both are gone, a run fails with `insufficient_funds` instead. The error
+carries your `plan`, the `top_up_url` and, on a plan, `renews_at`, and the
+message names the renewal date, so an agent can tell you whether to add
+credit now or wait. Nothing is ever charged to your card while you are not on
+the page: a plan fee is charged on its renewal date, a top-up when you make
+one, and nothing else.
+
+You change or cancel a plan from the Wallet page, through the Stripe customer
+portal, and both take effect at the next renewal. Cancelling stops the next
+charge; the cycle you already paid for runs to its end with its included
+credit, and you can keep running tools until it does. If a renewal payment
+fails, Stripe retries the card on its own schedule and emails you about it:
+included credit ends at the period end it already had, but the plan itself
+stays active while retries continue, so purchased credit keeps working. If
+Stripe gives up, the plan ends: you cannot run tools again until you
+subscribe. Purchased credit is never lost. It stays on the wallet and starts
+working again the moment you resubscribe.
+
+Plan fees are billed monthly in advance and are not refundable. There is no
+free trial on a plan.
 
 ## Reading prices from the API
 

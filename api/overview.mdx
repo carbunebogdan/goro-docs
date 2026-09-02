@@ -24,6 +24,14 @@ https://api.usegoro.ai
 | [`/v1/wallet/activities`](/api/wallet) | GET | The wallet ledger |
 | `/v1/whoami` | GET | Which workspace this key belongs to |
 
+<Note>
+  Signing up needs no plan, and neither does discovery: `discover`, `inspect`,
+  listing and fetching runs, and reading the wallet all work on a workspace
+  with no plan. `POST /v1/run` and `POST /v1/uploads` need an active plan,
+  Build or Scale; without one they answer `402 subscription_required`. See
+  [Errors](#errors) below and [Pricing](/pricing#plan-rules).
+</Note>
+
 ## Authentication
 
 Every `/v1` endpoint takes a Goro API key as a Bearer token. Keys start with
@@ -146,7 +154,9 @@ is written for a human and can change.
   "code": "insufficient_funds",
   "message": "Insufficient funds: this run requires a hold of $0.1200. Top up to continue.",
   "top_up_url": "https://app.usegoro.ai/billing",
-  "required_micro": 120000
+  "required_micro": 120000,
+  "plan": "free",
+  "renews_at": null
 }
 ```
 
@@ -154,7 +164,8 @@ is written for a human and can change.
 | --- | --- | --- | --- |
 | 400 | `validation_error` | `errors` | The request body or the tool input failed validation |
 | 401 | `unauthorized` | | Missing, malformed, unknown or revoked API key |
-| 402 | `insufficient_funds` | `top_up_url`, `required_micro`, `available_micro` | The wallet cannot cover the hold |
+| 402 | `subscription_required` | `billing_url`, `top_up_url` | The workspace has no active plan. `POST /v1/run` and `POST /v1/uploads` need one; nothing is held or charged |
+| 402 | `insufficient_funds` | `top_up_url`, `required_micro`, `available_micro`, `plan`, `renews_at` | The wallet cannot cover the hold. On a plan, `renews_at` is when included credit returns and the message names that date |
 | 402 | `budget_exceeded` | `period`, `cap_micro`, `spent_micro` | A workspace budget cap would be breached |
 | 403 | `forbidden` | | The credential is not allowed to do this. On the MCP server, a token missing the tool's scope |
 | 404 | `not_found` | | Unknown tool slug, or a run that is not yours |
