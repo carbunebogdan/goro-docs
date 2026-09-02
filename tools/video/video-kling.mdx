@@ -1,11 +1,11 @@
 ---
-title: "Kling 3.0 Turbo video"
-description: "Animate a still image into a video using Kling 3.0 Turbo, at 720p. You supply one image and a prompt describing how it should move. The image can be a file you "
+title: "Kling 3.0 Omni video"
+description: "Animate a still image you supply into a 720p video with native audio using Kling 3.0 Omni: the picture is the first frame, the prompt says what happens next. Cl"
 ---
 
-Animate a still image into a video using Kling 3.0 Turbo, at 720p. You supply one image and a prompt describing how it should move. The image can be a file you upload out of band and reference by handle, a public link, or the file's own bytes sent inline, so a local or private image never has to be published anywhere. Returns the URL of the generated MP4. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
+Animate a still image you supply into a 720p video with native audio using Kling 3.0 Omni: the picture is the first frame, the prompt says what happens next. Clips run 3 to 15 seconds. Returns the URL of the generated MP4. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
 
-<Note>Use when you already have the frame you want and need it to move: a product shot that pans, a generated image brought to life, a character that speaks. Pairs directly with the image endpoints. The most expensive per second of the image-to-video models here, so reach for video.grok or video.seedance first unless you specifically want Kling's motion. To send a local or private image, upload it first (POST /v1/uploads, or create_upload over MCP, or goro run --image) and pass the handle as image_handle, so the file never travels through the request. Billed per second of video you ask for.</Note>
+<Note>Use when you have the exact frame the video must start from (a product shot, a character, a location) and want it brought to life with sound: an ad still that needs motion, a portrait that should turn and speak, a mockup that should be handled. Better at keeping the starting image intact than the cheaper models. To send a local or private image, upload it first (POST /v1/uploads, or create_upload over MCP, or goro run --image) and pass the handle as image_handle. Billed per second of video you ask for.</Note>
 
 ## Price
 
@@ -17,12 +17,13 @@ No call costs less than $0.0020 or more than $2.70, the price of the largest req
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `prompt` | `string` | yes | How the image should move. Describe the action, the camera move and any dialogue; Kling generates matching audio. |
+| `audio` | `true` |  | Fixed on. Native audio is part of what this endpoint quotes; a silent video would be a different price. Defaults to `true`. |
+| `prompt` | `string` | yes | How the image should move. Describe the action, the camera move and any dialogue or sound; Kling generates matching audio. |
 | `duration` | `integer` |  | Length of the generated video in seconds. This is what you are billed on, and it is the only field that changes the price. Defaults to `5`. |
-| `image_urls` | `array` |  | One public http or https link to the starting image (JPEG or PNG, up to 10 MB). Use this when the image is ALREADY published somewhere; the output URL of an image endpoint works directly. For a file that is not already public, send image_handle instead and it never has to be published anywhere. Exactly one of image_handle, image_urls and image_base64 is required. |
-| `resolution` | `720p` |  | Fixed at 720p. Resolution changes the price per second, and this endpoint quotes one exact rate, so 1080p would get its own endpoint. Defaults to `"720p"`. |
-| `image_base64` | `string` |  | Only for a SMALL image (under 3 MB) or a caller that cannot run a shell command. The image inline, as base64 of the file's own bytes; a data:image/png;base64, prefix is accepted and its declared type ignored. Understand the cost before choosing it: this string is part of the request, and on an MCP call the request IS the tool arguments, which pass through the model's context window. A 3 MB photograph is 4 MB of base64, on the order of a million tokens, and in practice it is truncated and the run fails looking like file corruption. Do not downscale an image to fit here: use image_handle, which takes up to 10 MB and keeps the file out of the conversation entirely. Kling accepts JPEG and PNG. Exactly one of image_handle, image_urls and image_base64 is required. |
-| `image_handle` | `string` |  | The RIGHT WAY to send a local or private image. Upload the file first with POST /v1/uploads (or the create_upload MCP tool, or the CLI's --image flag, which does the whole thing for you) and put the short handle it returns here. The file goes straight from you to a private bucket: it never passes through a tool call, so it never passes through a model's context window, and up to 10 MB is fine. Nothing is published. The handle is usable for 10 minutes after the upload lands and the file is deleted 30 minutes after that. Kling accepts JPEG and PNG. Exactly one of image_handle, image_urls and image_base64 is required. |
+| `image_urls` | `array` |  | One public http or https link to the starting image (JPEG, PNG or WEBP, up to 10 MB). Use this when the image is ALREADY published somewhere; the output URL of an image endpoint works directly. For a file that is not already public, send image_handle instead and it never has to be published anywhere. Exactly one of image_handle, image_urls and image_base64 is required. |
+| `resolution` | `720p` |  | Fixed at 720p. Resolution changes the price per second, and this endpoint quotes one exact rate, so 1080p and 4k would get their own endpoints. Defaults to `"720p"`. |
+| `image_base64` | `string` |  | Only for a SMALL image (under 3 MB) or a caller that cannot run a shell command. The image inline, as base64 of the file's own bytes; a data:image/png;base64, prefix is accepted and its declared type ignored. Understand the cost before choosing it: this string is part of the request, and on an MCP call the request IS the tool arguments, which pass through the model's context window. A 3 MB photograph is 4 MB of base64, on the order of a million tokens, and in practice it is truncated and the run fails looking like file corruption. Do not downscale an image to fit here: use image_handle, which takes up to 10 MB and keeps the file out of the conversation entirely. JPEG, PNG or WEBP. Exactly one of image_handle, image_urls and image_base64 is required. |
+| `image_handle` | `string` |  | The RIGHT WAY to send a local or private image. Upload the file first with POST /v1/uploads (or the create_upload MCP tool, or the CLI's --image flag, which does the whole thing for you) and put the short handle it returns here. The file goes straight from you to a private bucket: it never passes through a tool call, so it never passes through a model's context window, and up to 10 MB is fine. Nothing is published. The handle is usable for 10 minutes after the upload lands and the file is deleted 30 minutes after that. JPEG, PNG or WEBP. Exactly one of image_handle, image_urls and image_base64 is required. |
 
 <Note>
   These are all the fields this endpoint accepts. Anything else is rejected as
@@ -35,7 +36,7 @@ No call costs less than $0.0020 or more than $2.70, the price of the largest req
 curl -X POST https://api.usegoro.ai/v1/run \
   -H "Authorization: Bearer $GORO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"slug":"video.kling","input":{"prompt":"The camera pushes in slowly as steam rises from the cup and the light shifts towards evening."}}'
+  -d '{"slug":"video.kling","input":{"prompt":"The woman turns to the window and smiles as the curtain lifts in a breeze."}}'
 ```
 
 ## Response

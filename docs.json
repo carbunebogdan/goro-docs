@@ -146,22 +146,29 @@
           {
             "group": "Image generation",
             "pages": [
+              "tools/image/image-gpt_image",
               "tools/image/image-grok",
               "tools/image/image-nano_banana",
               "tools/image/image-nano_banana_pro",
+              "tools/image/image-qwen",
               "tools/image/image-seedream",
+              "tools/image/image-seedream_pro",
               "tools/image/image-z_image"
             ]
           },
           {
             "group": "Video generation",
             "pages": [
+              "tools/video/video-gemini_omni",
               "tools/video/video-grok",
               "tools/video/video-kling",
               "tools/video/video-minimax",
+              "tools/video/video-pixverse",
               "tools/video/video-seedance",
               "tools/video/video-seedance_pro",
-              "tools/video/video-veo"
+              "tools/video/video-veo",
+              "tools/video/video-wan",
+              "tools/video/video-wan_prime"
             ]
           },
           {

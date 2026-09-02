@@ -1,0 +1,48 @@
+---
+title: "Qwen Image 3.0 Pro"
+description: "Generate an original image from a text prompt using Alibaba Qwen Image 3.0 Pro, at 1K or 2K. Text to image only. Returns the URL of the generated image. That UR"
+---
+
+Generate an original image from a text prompt using Alibaba Qwen Image 3.0 Pro, at 1K or 2K. Text to image only. Returns the URL of the generated image. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
+
+<Note>Use for structured layouts, posters and infographics with a lot of legible text, and for realistic scenes described in Chinese or English. A negative prompt is available for the things you do not want in the frame. Text to image only: this model bills every reference image, so editing is not offered here.</Note>
+
+## Price
+
+**$0.12 per call at `2K`.** A flat price, and the only thing that changes it is `resolution`: `1K` costs **$0.0640**, `2K` costs **$0.12**.
+
+Every one of those is exact and known before the call, so the hold and the charge are the same number and there is no ceiling to reconcile. Omit `resolution` and you are billed the `2K` price. A call that fails, times out or is stopped releases its hold in full and costs nothing.
+
+## Input
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `prompt` | `string` | yes | What to draw. Describe subject, composition, style, lighting and mood; Chinese and English both work. |
+| `image_size` | `1:1`, `3:2`, `2:3`, `4:3`, `3:4`, `16:9`, `9:16`, `21:9` |  | Shape of the output image (this model calls its aspect ratio image_size). Defaults to `"1:1"`. |
+| `resolution` | `1K`, `2K` |  | Output resolution, and the only thing that changes the price: $0.064 at 1K, $0.12 at 2K. Defaults to 2K. Defaults to `"2K"`. |
+| `output_format` | `png`, `jpeg` |  | File format of the generated image. Defaults to `"png"`. |
+| `negative_prompt` | `string` |  | Optional. What must not appear in the image. |
+
+<Note>
+  These are all the fields this endpoint accepts. Anything else is rejected as
+  a `validation_error` rather than forwarded to the provider.
+</Note>
+
+## Example
+
+```bash
+curl -X POST https://api.usegoro.ai/v1/run \
+  -H "Authorization: Bearer $GORO_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"image.qwen","input":{"prompt":"A poster for a jazz night, art deco lettering reading 'Blue Hour', navy and gold."}}'
+```
+
+## Response
+
+The full response. Values are illustrative.
+
+```json
+[
+  "https://example.com/goro/generated-image-1.png"
+]
+```

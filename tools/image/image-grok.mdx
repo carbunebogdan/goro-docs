@@ -1,11 +1,11 @@
 ---
-title: "Grok Imagine image"
-description: "Generate an original image from a text prompt using xAI Grok Imagine. Returns the URLs of the generated images. Those URLs are temporary: Goro holds a run's res"
+title: "Grok Imagine Image 2.0"
+description: "Generate an original image from a text prompt using xAI Grok Imagine Image 2.0, or EDIT images you supply. Send image_handles, image_urls or image_base64 to res"
 ---
 
-Generate an original image from a text prompt using xAI Grok Imagine. Returns the URLs of the generated images. Those URLs are temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
+Generate an original image from a text prompt using xAI Grok Imagine Image 2.0, or EDIT images you supply. Send image_handles, image_urls or image_base64 to restyle, retouch or combine up to 5 reference images; send none and it generates from the prompt alone. Editing costs exactly what generating costs. Returns the URL of the generated image. That URL is temporary: Goro holds a run's results for 24 hours and nothing guarantees the file outlives that, so collect what you need within 24 hours.
 
-<Note>Use when you want a photographic or cinematic look, or several takes on one prompt in a single call. A good default when the brief is a mood rather than a precise layout. Text to image only.</Note>
+<Note>Use when you want a photographic or cinematic look at the lowest price in the catalog, or a precise edit of an image you already have: a change of wardrobe, a background swap, typography placed into a scene, a reference transformed into a new composition. Follows instructions closely and renders text well. For the hardest edits and the best text, use image.nano_banana_pro.</Note>
 
 ## Price
 
@@ -17,8 +17,11 @@ There is no ceiling to read and no usage to reconcile afterwards. A call that fa
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `prompt` | `string` | yes | What to draw. Describe subject, composition, style, lighting and mood; the more specific, the closer the result. |
-| `aspect_ratio` | `1:1`, `2:3`, `3:2`, `9:16`, `16:9` |  | Shape of the output image. Defaults to `"1:1"`. |
+| `prompt` | `string` | yes | What to draw, or what to change. Describe subject, composition, style, lighting and mood; the more specific, the closer the result. |
+| `image_urls` | `array` |  | Optional. Public http or https links to the images to edit, combine or use as reference (JPEG, PNG or WEBP, up to 10 MB each, up to 5 of them). Use this when the images are ALREADY published somewhere; the output URL of any image endpoint works directly, which is what makes generate-then-edit a two-call sequence with nothing to upload in between. Nothing is copied or re-hosted, we pass the links on. For files that are not already public, use image_handles instead and they never have to be published anywhere. Send one of the three, never two. |
+| `aspect_ratio` | `1:1`, `2:3`, `3:2`, `16:9`, `9:16` |  | Shape of the output image. Defaults to `"1:1"`. |
+| `image_base64` | `string` |  | Optional, and only for ONE small image (under 3 MB) when you cannot run a shell command AND cannot ask the user to open a link. The image inline, as base64 of the file's own bytes; a data:image/png;base64, prefix is accepted and its declared type ignored. Only one image can arrive this way, because every inline image shares one request body. Understand the cost before choosing it: on an MCP call the request IS the tool arguments, which pass through the model's context window. A 3 MB photograph is 4 MB of base64, on the order of a million tokens, and in practice it is truncated and the run fails looking like file corruption. Do not downscale an image to fit here: use image_handles, which takes up to 10 MB per file and keeps them out of the conversation entirely. JPEG, PNG or WEBP, checked against the file's own leading bytes rather than against any type you declare. Send one of the three, never two. |
+| `image_handles` | `array` |  | Optional, and the RIGHT WAY to send local or private images to edit. Upload each file first with POST /v1/uploads (or the create_upload MCP tool, which also hands back a link a PERSON can open to pick the file on their own device, for when you have no shell) and put the short handles it returns here, in order. The files go straight from you to a private bucket: they never pass through a tool call, so they never pass through a model's context window, and up to 10 MB each is fine. Nothing is published. A handle is usable for 10 minutes after its upload lands and the file is deleted 30 minutes after that. Supplying any image makes this an edit rather than a generation, at exactly the same price. Up to 5 images, and the extras are free. Send one of image_handles, image_urls and image_base64, never two. |
 
 <Note>
   These are all the fields this endpoint accepts. Anything else is rejected as
@@ -31,7 +34,7 @@ There is no ceiling to read and no usage to reconcile afterwards. A call that fa
 curl -X POST https://api.usegoro.ai/v1/run \
   -H "Authorization: Bearer $GORO_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"slug":"image.grok","input":{"prompt":"example"}}'
+  -d '{"slug":"image.grok","input":{"prompt":"A vintage espresso machine on a marble counter, morning window light, film grain."}}'
 ```
 
 ## Response
@@ -40,7 +43,6 @@ The full response. Values are illustrative.
 
 ```json
 [
-  "https://example.com/goro/generated-image-1.png",
-  "https://example.com/goro/generated-image-2.png"
+  "https://example.com/goro/generated-image-1.png"
 ]
 ```
